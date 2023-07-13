@@ -1,0 +1,6 @@
+black==23.3.0
+addict==2.4.0
+nicegui==1.2.24
+numpy==1.25.0
+requests==2.31.0
+scipy==1.11.1

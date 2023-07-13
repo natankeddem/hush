@@ -1,0 +1,9 @@
+.git/
+.vscode/
+.nicegui/
+venv/
+__pycache__/
+logs/
+notes/
+mysecret.py
+test.py
