@@ -24,6 +24,7 @@ class Machine:
                 fm.close()
             except:
                 pass
+
     def thread(self, name, config):
         if name not in self._fms:
             pwm_ctrl_type = config.get("pwm_ctrl_type", "None")
