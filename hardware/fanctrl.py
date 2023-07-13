@@ -9,10 +9,12 @@ from scipy.interpolate import interp1d
 import math
 import datetime
 from hardware.idrac import Redfish
+
 try:
     import mysecret
 except:
     logger.info("mysecret was not loaded")
+
 
 class Machine:
     def __init__(self, temp_cb=None, adjust_cb=None, curve=None):
@@ -36,12 +38,12 @@ class Machine:
                             self.adjust = adjust
                     calcs_made = calcs_made + 1
             if calcs_made != 0:
-                logger.info(f"ma= {self.adjust}")
+                logger.info(f"Temperature={self.temp} -> Fan Speed={self.adjust}")
                 self.adjust_cb(self.adjust)
                 self.status = True
-        except:
-            logger.info(f"{sys.exc_info()[0]}")
+        except Exception as e:
             self.status = False
+            raise e
         self.last_run_time = datetime.datetime.now()
 
     @property
