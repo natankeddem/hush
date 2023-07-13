@@ -18,6 +18,12 @@ class Machine:
             thread = threading.Thread(name="async_run", args=(name, config), target=self.thread)
             thread.start()
 
+    def close(self):
+        for fm in self._fms:
+            try:
+                fm.close()
+            except:
+                pass
     def thread(self, name, config):
         if name not in self._fms:
             pwm_ctrl_type = config.get("pwm_ctrl_type", "None")
