@@ -5,6 +5,7 @@ import threading
 import hardware.fanctrl as fanctrl
 import hardware.idrac as idrac
 import hardware.ilo as ilo
+import hardware.smart as smart
 from tabs import configs
 
 
@@ -118,4 +119,11 @@ class Machine:
         return cpu_temp_cb
 
     def get_drive_temp_cb(self, config):
-        return None
+        drive_temp_type = config.get("drive_temp_type", "None")
+        if drive_temp_type == "SMART":
+            drive_temp_cb = smart.Smart(
+                address=config["ssh_address"], username=config["ssh_username"], password=config["ssh_password"]
+            ).get_drives_temps
+        else:
+            drive_temp_cb = None
+        return drive_temp_cb
