@@ -102,7 +102,6 @@ class Connections(Tab):
             configs[name]["ssh_password"] = ssh_password
             app.storage.general["servers"] = configs.to_dict()
             self.add_server_to_tabs(name)
-            logger.info(app.storage.general["servers"])
 
     def recall_server(self, name):
         self.server_card.clear()
