@@ -17,19 +17,12 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class iLO4:
-    class Fan_Offset(IntEnum):
-        OFF = 0
-        LOW = 1
-        MEDIUM = 2
-        HIGH = 3
-        MAX = 4
-
     def __init__(self, address, username="Administrator", password=""):
         self.address = address
         self.username = username
         self.password = password
         self.redfish_base_path = f"https://{self.address}/redfish/v1/"
-        self.base_cmd = f"sshpass -p {self.password} ssh {self.username}@{self.address} -o PubKeyAcceptedKeyTypes=+ssh-rsa -o HostKeyAlgorithms=+ssh-dss -o KexAlgorithms=+diffie-hellman-group14-sha1"
+        self.base_cmd = f"sshpass -p {self.password} ssh -o StrictHostKeychecking=no {self.username}@{self.address} -o PubKeyAcceptedKeyTypes=+ssh-rsa -o HostKeyAlgorithms=+ssh-dss -o KexAlgorithms=+diffie-hellman-group14-sha1"
         self._temp = 0
         self._pwm = 0
         self.get_fan_count()
