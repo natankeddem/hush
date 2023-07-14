@@ -8,3 +8,5 @@ services:
     volumes:
       - ~/path/to/data:/app/.nicegui
       - ~/path/to/logs:/app/logs
+    environment:
+      - VERBOSE_LOGGING=TRUE # Optional
