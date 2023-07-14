@@ -72,7 +72,7 @@ class Machine:
             self._monitor_tab.update_field(
                 name, "time", f"Last Run Time = {str(self._fms[name]['instance'].last_run_time)}"
             )
-            self._monitor_tab.update_field(name, "temp", f"Last Temperature = {str(self._fms[name]['instance'].temp)}")
+            self._monitor_tab.update_field(name, "temp", f"Last Temperature = {self._fms[name]['instance'].temp}")
             self._monitor_tab.update_field(
                 name, "adjust", f"Last Control Adjustment = {str(self._fms[name]['instance'].adjust)}"
             )

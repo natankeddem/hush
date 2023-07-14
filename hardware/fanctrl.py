@@ -27,19 +27,33 @@ class Machine:
         self._last_run_time = None
 
     def run(self):
-        calcs_made = 0
+        int_adjust = None
+        current_adjust = None
+        final_adjust = None
+        temp_list = list()
         try:
             for temp_cb, curve in dict(zip(self.temp_cb, self.curve)).items():
                 if temp_cb is not None:
-                    self.temp = temp_cb()
-                    adjust = curve.calc(self.temp)
+                    temp = temp_cb()
+                    adjust = curve.calc(temp)
+                    temp_list.append(temp)
+                    logger.debug(f"adjust={adjust} values={curve.values}")
                     if adjust is not None:
-                        if self.adjust is None or adjust > self.adjust:
-                            self.adjust = adjust
-                    calcs_made = calcs_made + 1
-            if calcs_made != 0:
-                logger.info(f"Temperature={self.temp} -> Fan Speed={self.adjust}")
+                        if isinstance(adjust, str) is True:
+                            current_adjust = curve.values.index(adjust)
+                        else:
+                            current_adjust = adjust
+                        if int_adjust is None or current_adjust > int_adjust:
+                            int_adjust = current_adjust
+                            if isinstance(adjust, str) is True:
+                                final_adjust = adjust
+                            else:
+                                final_adjust = current_adjust
+            if final_adjust is not None:
+                self.adjust = final_adjust
+                logger.info(f"Temperature={temp} -> Fan Speed={self.adjust}")
                 self.adjust_cb(self.adjust)
+                self.temp = temp_list
                 self.status = True
         except Exception as e:
             self.status = False
@@ -76,7 +90,6 @@ class Machine:
         else:
             self._curve = [curve]
 
-    # temp_cb, adjust_cb, curve
     @property
     def temp(self):
         return self._temp
@@ -112,9 +125,11 @@ class Machine:
 
 class Curve:
     def __init__(self, curve):
+        logger.info(f"curve={curve}")
         self.values = list()
         self.temps = list()
-        for values, temps in curve.items():
+        self._curve = curve
+        for values, temps in self._curve.items():
             self.values.append(values)
             self.temps.append(temps)
 
@@ -128,25 +143,23 @@ class Curve:
         return value
 
     def temp2value(self, temp):
-        value = None
+        set_value = None
         temp_count = len(self.temps)
         value_count = len(self.values)
         if temp_count < 2 or value_count < 2:
-            value = self.values[0]
+            set_value = self.values[0]
         if temp <= self.temps[0]:
-            value = self.values[0]
+            set_value = self.values[0]
         elif temp > self.temps[-1]:
-            value = self.values[-1]
+            set_value = self.values[-1]
         else:
-            itemp = 0
-            for t in self.temps:
+            for v, t in self._curve.items():
                 if temp > t:
-                    value = self.values[itemp]
-                itemp = itemp + 1
-        return value
+                    set_value = v
+                logger.info(f"temp={t} value={v} set_value={set_value}")
+        return set_value
 
     def temp2pwm(self, temp):
-        # logger.info(f"t={temp}")
         temps = self.temps
         temps.insert(0, 1)
         temps.append(120)
