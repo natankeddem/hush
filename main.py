@@ -26,9 +26,8 @@ with ui.column().classes("w-full items-center") as config_header_col:
         sensors_ctrls_tab = ui.tab("Sensors & Ctrls")
         algorithms_tab = ui.tab("Algorithms")
         monitors_tab = ui.tab("Monitors")
-        debug_tab = ui.tab("Debug")
-with ui.column().classes("w-full items-center") as config_content_col:
-    with ui.tab_panels(configs, value=connections_tab, animated=False).classes("column items-center justify-center"):
+        if os.environ.get("DISPLAY_DEBUG_TAB", "FALSE") == "TRUE":
+            debug_tab = ui.tab("Debug")
         with ui.tab_panel(connections_tab).style("min-height: 600px"):
             connections = Connections()
             connections.tab_populate()
@@ -41,12 +40,14 @@ with ui.column().classes("w-full items-center") as config_content_col:
         with ui.tab_panel(monitors_tab).style("min-height: 600px"):
             monitors = Monitors()
             monitors.tab_populate()
-        with ui.tab_panel(debug_tab).style("min-height: 600px"):
-            debug = Debug()
-            debug.tab_populate()
+        if os.environ.get("DISPLAY_DEBUG_TAB", "FALSE") == "TRUE":
+            with ui.tab_panel(debug_tab).style("min-height: 600px"):
+                debug = Debug()
+                debug.tab_populate()
 
 app.on_connect(connections.handle_connection)
-ui.timer(3, debug.update_log)
+if os.environ.get("DISPLAY_DEBUG_TAB", "FALSE") == "TRUE":
+    ui.timer(3, debug.update_log)
 machine = control.Machine(monitor_tab=monitors)
 ui.timer(10, machine.run)
 app.on_shutdown(machine.close)

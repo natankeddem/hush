@@ -22,8 +22,7 @@ def is_docker():
     return status
 
 
-verbose_logging = os.environ.get("VERBOSE_LOGGING", False)
-if is_docker() is False or verbose_logging is not False:
+if is_docker() is False or os.environ.get("VERBOSE_LOGGING", "FALSE") == "TRUE":
     logging_mode = " Verbose"
     LOGGING_CONFIG = {
         "version": 1,
