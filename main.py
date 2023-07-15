@@ -4,13 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 from nicegui import app, ui
 import nicegui as ng
-from collections import defaultdict
-import asyncio
-import threading
-import hardware.fanctrl as fanctrl
-import hardware.idrac as idrac
-from addict import Dict as AdDict
-
+import os
 from tabs.connections import Connections
 from tabs.sensors_ctrls import SensorsCtrls
 from tabs.algorithms import Algorithms
@@ -20,14 +14,16 @@ import control
 
 ui.colors(primary="#424242", secondary="#323232", accent="#424242")
 
-with ui.column().classes("w-full items-center") as config_header_col:
-    with ui.tabs().classes("w-full items-center") as configs:
+with ui.column().classes("w-full items-center") as tab_header_col:
+    with ui.tabs().classes("w-full items-center") as tabs:
         connections_tab = ui.tab("Connections")
         sensors_ctrls_tab = ui.tab("Sensors & Ctrls")
         algorithms_tab = ui.tab("Algorithms")
         monitors_tab = ui.tab("Monitors")
         if os.environ.get("DISPLAY_DEBUG_TAB", "FALSE") == "TRUE":
             debug_tab = ui.tab("Debug")
+with ui.column().classes("w-full items-center") as tabs_content_col:
+    with ui.tab_panels(tabs, value=connections_tab, animated=False).classes("column items-center justify-center"):
         with ui.tab_panel(connections_tab).style("min-height: 600px"):
             connections = Connections()
             connections.tab_populate()
