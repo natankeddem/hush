@@ -6,6 +6,7 @@ Currently supports:
 - iDRAC9 (Offset control only)
 - iLO4 (must be running unlocked version)
 - SMART (drive temperatures only obviously)
+
 I am hoping to add more control/sensors in the future.
 
 For installing see docker-compose for reference.
