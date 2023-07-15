@@ -57,18 +57,20 @@ class Connections(Tab):
                         ssh_username = ui.input(
                             label="Username", value=configs[self._name.value].get("ssh_username", "")
                         ).classes("w-full")
-                        ssh_password = ui.input(
-                            label="Password", value=configs[self._name.value].get("ssh_password", "")
-                        ).classes("w-full")
+                        ssh_password = (
+                            ui.input(label="Password", value=configs[self._name.value].get("ssh_password", ""))
+                            .classes("w-full")
+                            .props("type=password")
+                        )
                 else:
                     with ui.tab_panel(oob_tab):
                         oob_address = ui.input(label="Address").classes("w-full")
                         oob_username = ui.input(label="Username").classes("w-full")
-                        oob_password = ui.input(label="Password").classes("w-full")
+                        oob_password = ui.input(label="Password").classes("w-full").props("type=password")
                     with ui.tab_panel(ssh_tab):
                         ssh_address = ui.input(label="Address").classes("w-full")
                         ssh_username = ui.input(label="Username").classes("w-full")
-                        ssh_password = ui.input(label="Password").classes("w-full")
+                        ssh_password = ui.input(label="Password").classes("w-full").props("type=password")
             server_add = ui.button(
                 "",
                 on_click=lambda: self.save_connection(
