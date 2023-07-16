@@ -34,19 +34,26 @@ class Smart:
 
     def get_drive_list(self):
         drive_paths = list()
-        drive_lines = self.ssh_cmd("fdisk -l").splitlines()
-        for line in drive_lines:
-            drive_path = re.search("^Disk (\/dev\/sd[a-z]+|\/dev\/nvm[0-9]+n[0-9]+)", line)
-            if drive_path is not None:
-                drive_paths.append(drive_path.group(1))
+        try:
+            output = self.ssh_cmd("fdisk -l")
+            drive_paths = re.findall("Disk (\/dev\/sd[a-z]+|\/dev\/nvm[0-9]+n[0-9]+)", output)
+        except Exception as e:
+            logger.error(f"Failed to get cpu temperature from: {output}")
+            raise e
         return drive_paths
 
     def get_drive_temp(self, drive_path):
-        status_lines = self.ssh_cmd(f"smartctl -l scttemp {drive_path}").splitlines()
-        for line in status_lines:
-            temp = re.search("^Current Temperature:\s+(\d+)", line)
-            if temp is not None:
-                return int(temp.group(1))
+        status_lines = list()
+        try:
+            output = self.ssh_cmd(f"smartctl -l scttemp {drive_path}")
+            status_lines = output.splitlines()
+            for line in status_lines:
+                temp = re.search("^Current Temperature:\s+(\d+)", line)
+                if temp is not None:
+                    return int(temp.group(1))
+        except Exception as e:
+            logger.error(f"Failed to get cpu temperature from: {output}")
+            raise e
 
     def get_drives_temps(self):
         drive_temps = list()
