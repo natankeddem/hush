@@ -22,7 +22,7 @@ class Machine:
     def close(self):
         for fm in self._fms:
             try:
-                fm.close()
+                fm["instance"].close()
             except:
                 pass
 
