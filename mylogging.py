@@ -23,7 +23,7 @@ def is_docker():
 
 
 if is_docker() is False or os.environ.get("VERBOSE_LOGGING", "FALSE") == "TRUE":
-    logging_mode = " Verbose"
+    logging_mode = "Verbose "
     LOGGING_CONFIG = {
         "version": 1,
         "disable_existing_loggers": True,
@@ -110,4 +110,4 @@ dictConfig(LOGGING_CONFIG)
 import logging
 
 logger = logging.getLogger(__name__)
-logger.warn(f"***Logging{logging_mode} Started***")
+logger.warn(f"***{logging_mode}Logging Started***")
