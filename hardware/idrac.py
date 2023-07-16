@@ -6,7 +6,9 @@ import subprocess
 import shlex
 import requests
 import json
+import re
 from requests.packages import urllib3
+import numpy as np
 
 try:
     import mysecret
@@ -96,11 +98,28 @@ class Redfish:
             {"Attributes": {"ThermalSettings.1.FanSpeedOffset": offsets[offset]}},
         )
         output = json.dumps(output)
-        output.index("The request completed successfully.")
-        output.index("The operation successfully completed.")
+        try:
+            output.index("The request completed successfully.")
+            output.index("The operation successfully completed.")
+        except Exception as e:
+            logger.error(f"Failed to set pwm; cmd response: {output}")
+            raise e
 
-    def get_cpu_temp(self):
-        return int(self.get("Chassis/System.Embedded.1/Sensors/CPU1Temp")["Reading"])
+    def get_cpu_temp(self, core=None):
+        cpu_temps = list()
+        try:
+            sensors = str(self.get("Chassis/System.Embedded.1/Sensors"))
+            sensor_paths = re.findall("Chassis\/System.Embedded.1\/Sensors\/CPU\dTemp", sensors)
+            for sensor_path in sensor_paths:
+                sensor_data = self.get(f"{sensor_path}")
+                cpu_temps.append(int(sensor_data["Reading"]))
+        except Exception as e:
+            logger.error(f"Failed to get cpu temperature from: {sensor_data}")
+            raise e
+        if core is None:
+            return int(np.mean(cpu_temps))
+        else:
+            return cpu_temps[core]
 
     def get_pwm(self):
         offset = self.get_fan_offset()
@@ -149,18 +168,36 @@ class Ipmi:
     def run_cmd(self, cmd):
         full_cmd = f"{self.base_cmd} {cmd}"
         value = subprocess.run(shlex.split(full_cmd), capture_output=True, timeout=5)
+        if value.returncode != 0:
+            raise Exception
         value = value.stdout.decode("utf-8")
         return value
 
     def set_fan_mode(self, mode):
-        self.run_cmd(f"raw 0x30 0x30 0x01 0x0{int(mode)}")
+        if self.run_cmd(f"raw 0x30 0x30 0x01 0x0{int(mode)}") != "\n":
+            raise Exception
 
-    def get_cpu_temp(self):
-        return int(self.run_cmd('-c sdr get "Temp"').split(",")[1])
+    def get_cpu_temp(self, core=None):
+        cpu_temps = list()
+        try:
+            output = self.run_cmd("-c sdr")
+            data_lines = output.splitlines()
+            for data in data_lines:
+                data = data.split(",")
+                if data[0] == "Temp" and data[1] != "":
+                    cpu_temps.append(int(data[1]))
+            if core is None:
+                return int(np.mean(cpu_temps))
+            else:
+                return cpu_temps[core]
+        except Exception as e:
+            logger.error(f"Failed to get cpu temperature from: {output}")
+            raise e
 
     def set_pwm(self, pwm):
         pwm_set = hex(int(pwm))
-        self.run_cmd(f"raw 0x30 0x30 0x02 0xff {pwm_set}")
+        if self.run_cmd(f"raw 0x30 0x30 0x02 0xff {pwm_set}") != "\n":
+            raise Exception
 
 
 if __name__ == "__main__":
