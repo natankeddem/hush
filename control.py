@@ -5,6 +5,7 @@ import threading
 import hardware.fanctrl as fanctrl
 import hardware.idrac as idrac
 import hardware.ilo as ilo
+import hardware.supermicro as sm
 import hardware.smart as smart
 from tabs import configs
 
@@ -96,6 +97,18 @@ class Machine:
             adjust_cb = ilo.iLO4(
                 address=config["oob_address"], username=config["oob_username"], password=config["oob_password"]
             ).set_pwm
+        elif pwm_ctrl_type == "X9":
+            adjust_cb = sm.X9(
+                address=config["oob_address"], username=config["oob_username"], password=config["oob_password"]
+            ).set_pwm
+        elif pwm_ctrl_type == "X10":
+            adjust_cb = sm.X10(
+                address=config["oob_address"], username=config["oob_username"], password=config["oob_password"]
+            ).set_pwm
+        elif pwm_ctrl_type == "X11":
+            adjust_cb = sm.X11(
+                address=config["oob_address"], username=config["oob_username"], password=config["oob_password"]
+            ).set_pwm
         else:
             adjust_cb = None
         return adjust_cb
@@ -112,6 +125,18 @@ class Machine:
             ).get_cpu_temp
         elif cpu_temp_type == "iLO 4":
             cpu_temp_cb = ilo.iLO4(
+                address=config["oob_address"], username=config["oob_username"], password=config["oob_password"]
+            ).get_cpu_temp
+        elif cpu_temp_type == "X9":
+            cpu_temp_cb = sm.X9(
+                address=config["oob_address"], username=config["oob_username"], password=config["oob_password"]
+            ).get_cpu_temp
+        elif cpu_temp_type == "X10":
+            cpu_temp_cb = sm.X10(
+                address=config["oob_address"], username=config["oob_username"], password=config["oob_password"]
+            ).get_cpu_temp
+        elif cpu_temp_type == "X11":
+            cpu_temp_cb = sm.X11(
                 address=config["oob_address"], username=config["oob_username"], password=config["oob_password"]
             ).get_cpu_temp
         else:
