@@ -122,6 +122,14 @@ class Connections(Tab):
                     name,
                     on_click=lambda button: self.recall_server(name=button.sender.parent_slot.parent.default_slot.name),
                 ).classes("q-ma-sm")
+                ui.number(
+                    label="Rate",
+                    value=configs[name].get("rate", 10),
+                    min=0,
+                    step=1,
+                    suffix="s",
+                    on_change=lambda control: self.set_rate(control=control),
+                ).style("max-width: 100px").props("outlined dense").classes("text-right q-pa-xs q-ma-xs")
                 button = ui.button(
                     on_click=lambda button: self.remove_server_from_tabs(
                         name=button.sender.parent_slot.parent.default_slot.name
@@ -136,3 +144,7 @@ class Connections(Tab):
     def handle_connection(self):
         for name in configs.keys():
             self.add_server_to_tabs(name)
+
+    def set_rate(self, control):
+        name = control.sender.parent_slot.parent.default_slot.name
+        configs[name]["rate"] = control.sender.value
