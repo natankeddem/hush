@@ -44,7 +44,7 @@ with ui.column().classes("w-full items-center") as tabs_content_col:
 app.on_connect(connections.handle_connection)
 if os.environ.get("DISPLAY_DEBUG_TAB", "FALSE") == "TRUE":
     ui.timer(3, debug.update_log)
-machine = control.Machine(monitor_tab=monitors)
-ui.timer(10, machine.run)
-app.on_shutdown(machine.close)
+launcher = control.Launcher(monitor_tab=monitors)
+ui.timer(1, launcher.run)
+app.on_shutdown(launcher.close)
 ui.run(reload=False, dark=True)
