@@ -13,7 +13,7 @@ class Debug(Tab):
         self._log = None
 
     def tab_populate(self):
-        self._card = ui.card().classes("justify-center")
+        self._card = ui.card().classes("justify-center no-shadow border-[2px]")
         with self._card:
             self._column = ui.column().classes("w-full")
             with self._column:

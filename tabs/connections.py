@@ -15,9 +15,9 @@ class Connections(Tab):
         self.server_column = None
 
     def tab_populate(self):
-        self.server_card = ui.card().style("min-width: 600px").classes("justify-center")
+        self.server_card = ui.card().style("min-width: 600px").classes("justify-center no-shadow border-[2px]")
         self.card_populate()
-        self.servers_card = ui.card().style("min-width: 600px").classes("justify-center")
+        self.servers_card = ui.card().style("min-width: 600px").classes("justify-center no-shadow border-[2px]")
         with self.servers_card:
             self.servers_column = ui.column().classes("w-full")
             with self.servers_column:
@@ -25,12 +25,17 @@ class Connections(Tab):
 
     def card_populate(self, name=""):
         with self.server_card:
-            self._name = ui.input(label="Name", value=name, on_change=lambda v: self.named_changed(v)).classes("w-full")
-            self.server_column = ui.column().classes("w-full justify-center")
-            self.column_populate()
+            self._name = ui.input(
+                label="Name (Required)", value=name, on_change=lambda v: self.name_changed(v)
+            ).classes("w-full")
+            with ui.row().classes("w-full justify-center"):
+                with ui.card().classes("w-full justify-center no-shadow border-[2px]"):
+                    self.server_column = ui.column().classes("w-full justify-center")
+                    self.column_populate()
 
     def column_populate(self):
         with self.server_column:
+            ui.label("Credentials").classes("self-center text-h6")
             with ui.tabs().classes("w-full items-center") as cons:
                 oob_tab = ui.tab("OOB")
                 ssh_tab = ui.tab("OS")
@@ -84,7 +89,7 @@ class Connections(Tab):
                 ),
             ).classes("self-center")
             with server_add:
-                ui.icon("save").classes("text-h7")
+                ui.icon("save")
 
     def name_changed(self, name):
         if name.value in configs:
@@ -123,7 +128,7 @@ class Connections(Tab):
                     )
                 ).classes("q-ma-sm")
                 with button:
-                    ui.icon("delete").classes("text-h7")
+                    ui.icon("delete").classes("text-h5")
 
     def remove_server_from_tab(self, name):
         remove_row(name, self.servers_column)
