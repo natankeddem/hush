@@ -33,7 +33,7 @@ class Connections(Tab):
         with self.server_column:
             with ui.tabs().classes("w-full items-center") as cons:
                 oob_tab = ui.tab("OOB")
-                ssh_tab = ui.tab("SSH")
+                ssh_tab = ui.tab("OS")
             with ui.tab_panels(cons, value=oob_tab, animated=False).classes("w-full items-center").style(
                 "min-height: 200px"
             ):
@@ -86,7 +86,7 @@ class Connections(Tab):
             with server_add:
                 ui.icon("save").classes("text-h7")
 
-    def named_changed(self, name):
+    def name_changed(self, name):
         if name.value in configs:
             self.server_column.clear()
             self.column_populate()

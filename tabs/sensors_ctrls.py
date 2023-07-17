@@ -5,7 +5,7 @@ from nicegui import app, ui
 from . import *
 
 cpu_temp_types = ["None", "iDRAC 7", "iDRAC 8", "iDRAC 9", "iLO 4", "X9", "X10", "X11"]
-pwm_ctrl_types = ["None", "iDRAC 7", "iDRAC 8", "iDRAC 9", "iLO 4", "X9", "X10", "X11"]
+speed_ctrl_types = ["None", "iDRAC 7", "iDRAC 8", "iDRAC 9", "iLO 4", "X9", "X10", "X11"]
 drive_temp_types = ["None", "SMART"]
 
 
@@ -27,27 +27,29 @@ class SensorsCtrls(Tab):
             with row.classes("justify-start"):
                 with ui.expansion(name, icon="settings").classes("w-full"):
                     ui.select(
-                        pwm_ctrl_types,
-                        label="Pwm Controller",
-                        value=configs[name].get("pwm_ctrl_type", pwm_ctrl_types[0]),
-                        on_change=lambda v: self.set_sensor_ctrl("pwm_ctrl_type", v),
+                        speed_ctrl_types,
+                        label="Speed Controller",
+                        value=configs[name].get("speed_ctrl_type", speed_ctrl_types[0]),
+                        on_change=lambda v: self.set_sensor_ctrl("speed_ctrl_type", v),
                     ).classes("w-full")
                     ui.select(
                         cpu_temp_types,
                         label="Cpu Temperature Sensor",
-                        value=configs[name].get("cpu_temp_type", pwm_ctrl_types[0]),
+                        value=configs[name].get("cpu_temp_type", speed_ctrl_types[0]),
                         on_change=lambda v: self.set_sensor_ctrl("cpu_temp_type", v),
                     ).classes("w-full")
                     ui.select(
                         drive_temp_types,
                         label="Drive Temperature Sensor",
-                        value=configs[name].get("drive_temp_type", pwm_ctrl_types[0]),
+                        value=configs[name].get("drive_temp_type", speed_ctrl_types[0]),
                         on_change=lambda v: self.set_sensor_ctrl("drive_temp_type", v),
                     ).classes("w-full")
 
     def set_sensor_ctrl(self, sensor_ctrl, value):
         n = value.sender.parent_slot.parent.parent_slot.name
         configs[n][sensor_ctrl] = value.sender.value
+        sensor = sensor_ctrl.split("_")[0]
+        del configs[n]["algo"]
         app.storage.general["servers"] = configs.to_dict()
         self.remove_server_from_tabs(name=n, tabs=["Algorithms"])
         self.add_server_to_tabs(name=n, tabs=["Algorithms"])

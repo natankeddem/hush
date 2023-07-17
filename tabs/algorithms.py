@@ -54,11 +54,11 @@ class Sliders:
                 "reverse vertical label-always snap label-value='value + 'C''"
             )
             temp.default_slot.name = f"{name}.{sensor}.{label}"
-            if type(configs[name]["algo"]["curves"][sensor]["pwm"][label]) is AdDict:
+            if type(configs[name]["algo"]["curves"][sensor]["speed"][label]) is AdDict:
                 pwm_value = pwm_default
-                configs[name]["algo"]["curves"][sensor]["pwm"][label] = pwm_value
+                configs[name]["algo"]["curves"][sensor]["speed"][label] = pwm_value
             else:
-                pwm_value = configs[name]["algo"]["curves"][sensor]["pwm"][label]
+                pwm_value = configs[name]["algo"]["curves"][sensor]["speed"][label]
             pwm = ui.number(
                 label, value=pwm_value, min=0, max=100, step=1, on_change=lambda n: self._store_pwm(n)
             ).style("max-width: 75px")
@@ -78,7 +78,7 @@ class Sliders:
         sensor = ctrl.sender.default_slot.name.split(".")[1]
         level = ctrl.sender.default_slot.name.split(".")[2]
         pwm = ctrl.sender.value
-        configs[name]["algo"]["curves"][sensor]["pwm"][level] = pwm
+        configs[name]["algo"]["curves"][sensor]["speed"][level] = pwm
         app.storage.general["servers"] = configs.to_dict()
 
 
@@ -123,7 +123,7 @@ class iDrac9Sliders(Sliders):
             )
             temp.default_slot.name = f"{name}.{sensor}.{label}"
             ui.label(label)
-            configs[name]["algo"]["curves"][sensor]["pwm"][label] = label
+            configs[name]["algo"]["curves"][sensor]["speed"][label] = label
             app.storage.general["servers"] = configs.to_dict()
 
 
@@ -135,7 +135,7 @@ class Algorithms(Tab):
         self._column = None
 
     def tab_populate(self):
-        self._card = ui.card().style("min-width: 600px").classes("justify-center")
+        self._card = ui.card().style("min-width: 600px").classes("justify-center no-shadow border-[2px]")
         with self._card:
             self._column = ui.column().classes("w-full")
 
@@ -144,7 +144,7 @@ class Algorithms(Tab):
         if row is not None:
             with row:
                 with ui.expansion(name, icon="bar_chart").classes("w-full") as expansion:
-                    if configs[name].get("pwm_ctrl_type", "None") == "iDRAC 9":
+                    if configs[name].get("speed_ctrl_type", "None") == "iDRAC 9":
                         sliders = iDrac9Sliders(expansion)
                         sliders.add()
                     else:
