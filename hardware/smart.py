@@ -1,30 +1,16 @@
-import logging
+from . import *
 
 logger = logging.getLogger(__name__)
-from enum import IntEnum
 import subprocess
 import shlex
 import re
-from requests.packages import urllib3
 import numpy as np
 
-try:
-    import mysecret
-except:
-    logger.info("mysecret was not loaded")
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-
-class Smart:
-    def __init__(self, address, username="root", password=""):
-        self.address = address
-        self.username = username
-        self.password = password
-        self.base_cmd = f"sshpass -p {self.password} ssh -o StrictHostKeychecking=no {self.username}@{self.address}"
-        self._temp = 0
-
-    def close(self):
-        pass
+class Smart(Device):
+    def __init__(self, address, password, username="root"):
+        super().__init__(address=address, password=password, username=username)
+        self.base_cmd = f"sshpass -p {self._password} ssh -o StrictHostKeychecking=no {self._username}@{self._address}"
 
     def ssh_cmd(self, command):
         full_cmd = f"{self.base_cmd} {command}"
@@ -38,7 +24,7 @@ class Smart:
             output = self.ssh_cmd("fdisk -l")
             drive_paths = re.findall("Disk (\/dev\/sd[a-z]+|\/dev\/nvm[0-9]+n[0-9]+)", output)
         except Exception as e:
-            logger.error(f"Failed to get cpu temperature from: {output}")
+            logger.error(f"{self._address} failed to get cpu temperature from: {output}")
             raise e
         return drive_paths
 
@@ -51,20 +37,25 @@ class Smart:
                 temp = re.search("^Current Temperature:\s+(\d+)", line)
                 if temp is not None:
                     return int(temp.group(1))
-        except Exception as e:
-            logger.error(f"Failed to get cpu temperature from: {output}")
-            raise e
+        except:
+            logger.info(f"{self._address} failed to get cpu temperature from: {drive_path}")
+            return None
 
-    def get_drives_temps(self):
+    def get_temp(self):
         drive_temps = list()
         drive_paths = self.get_drive_list()
         for drive_path in drive_paths:
             temp = self.get_drive_temp(drive_path=drive_path)
             if temp is not None:
                 drive_temps.append(temp)
-        return int(np.mean(drive_temps))
+        self._temp = int(np.mean(drive_temps))
+        return self._temp
+
+
+def test():
+    s = Smart(address="10.1.5.2", password=my_secret_password, username="root")
+    print(s.get_temp())
 
 
 if __name__ == "__main__":
-    s = Smart(address="10.1.5.2", username="root", password=mysecret.password)
-    print(s.get_drives_temps())
+    test()
