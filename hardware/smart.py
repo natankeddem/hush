@@ -29,27 +29,30 @@ class Smart(Device):
         return drive_paths
 
     def get_drive_temp(self, drive_path):
-        status_lines = list()
         try:
             output = self.ssh_cmd(f"smartctl -l scttemp {drive_path}")
-            status_lines = output.splitlines()
-            for line in status_lines:
-                temp = re.search("^Current Temperature:\s+(\d+)", line)
-                if temp is not None:
-                    return int(temp.group(1))
-        except:
-            logger.info(f"{self._address} failed to get cpu temperature from: {drive_path}")
-            return None
+            temp = re.search("Current Temperature:\s+(\d+)", output)
+            if temp is not None and temp.lastindex == 1:
+                return int(temp.group(1))
+            else:
+                logger.info(f"{self._address} failed to get drive temperature from: {drive_path}")
+        except Exception as e:
+            logger.info(f"{self._address} failed to get drive temperature from: {drive_path}")
+            raise e
 
     def get_temp(self):
-        drive_temps = list()
-        drive_paths = self.get_drive_list()
-        for drive_path in drive_paths:
-            temp = self.get_drive_temp(drive_path=drive_path)
-            if temp is not None:
-                drive_temps.append(temp)
-        self._temp = int(np.mean(drive_temps))
-        return self._temp
+        try:
+            drive_temps = list()
+            drive_paths = self.get_drive_list()
+            for drive_path in drive_paths:
+                temp = self.get_drive_temp(drive_path=drive_path)
+                if temp is not None:
+                    drive_temps.append(temp)
+            self._temp = int(np.mean(drive_temps))
+            return self._temp
+        except Exception as e:
+            logger.info(f"{self._address} failed | drive_paths={drive_paths} | drive_temps={drive_temps}")
+            raise e
 
 
 def test():
