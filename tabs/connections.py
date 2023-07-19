@@ -38,7 +38,7 @@ class Connections(Tab):
             ui.label("Credentials").classes("self-center text-h6")
             with ui.tabs().classes("w-full items-center") as cons:
                 oob_tab = ui.tab("OOB")
-                ssh_tab = ui.tab("OS")
+                os_tab = ui.tab("OS")
             with ui.tab_panels(cons, value=oob_tab, animated=False).classes("w-full items-center").style(
                 "min-height: 200px"
             ):
@@ -55,15 +55,15 @@ class Connections(Tab):
                             .classes("w-full")
                             .props("type=password")
                         )
-                    with ui.tab_panel(ssh_tab):
-                        ssh_address = ui.input(
-                            label="Address", value=configs[self._name.value].get("ssh_address", "")
+                    with ui.tab_panel(os_tab):
+                        os_address = ui.input(
+                            label="Address", value=configs[self._name.value].get("os_address", "")
                         ).classes("w-full")
-                        ssh_username = ui.input(
-                            label="Username", value=configs[self._name.value].get("ssh_username", "")
+                        os_username = ui.input(
+                            label="Username", value=configs[self._name.value].get("os_username", "")
                         ).classes("w-full")
-                        ssh_password = (
-                            ui.input(label="Password", value=configs[self._name.value].get("ssh_password", ""))
+                        os_password = (
+                            ui.input(label="Password", value=configs[self._name.value].get("os_password", ""))
                             .classes("w-full")
                             .props("type=password")
                         )
@@ -72,10 +72,10 @@ class Connections(Tab):
                         oob_address = ui.input(label="Address").classes("w-full")
                         oob_username = ui.input(label="Username").classes("w-full")
                         oob_password = ui.input(label="Password").classes("w-full").props("type=password")
-                    with ui.tab_panel(ssh_tab):
-                        ssh_address = ui.input(label="Address").classes("w-full")
-                        ssh_username = ui.input(label="Username").classes("w-full")
-                        ssh_password = ui.input(label="Password").classes("w-full").props("type=password")
+                    with ui.tab_panel(os_tab):
+                        os_address = ui.input(label="Address").classes("w-full")
+                        os_username = ui.input(label="Username").classes("w-full")
+                        os_password = ui.input(label="Password").classes("w-full").props("type=password")
             server_add = ui.button(
                 "",
                 on_click=lambda: self.save_connection(
@@ -83,9 +83,9 @@ class Connections(Tab):
                     oob_address=oob_address.value,
                     oob_username=oob_username.value,
                     oob_password=oob_password.value,
-                    ssh_address=ssh_address.value,
-                    ssh_username=ssh_username.value,
-                    ssh_password=ssh_password.value,
+                    os_address=os_address.value,
+                    os_username=os_username.value,
+                    os_password=os_password.value,
                 ),
             ).classes("self-center")
             with server_add:
@@ -99,14 +99,14 @@ class Connections(Tab):
             self.server_column.clear()
             self.column_populate()
 
-    def save_connection(self, name, oob_address, oob_username, oob_password, ssh_address, ssh_username, ssh_password):
+    def save_connection(self, name, oob_address, oob_username, oob_password, os_address, os_username, os_password):
         if name != "":
             configs[name]["oob_address"] = oob_address
             configs[name]["oob_username"] = oob_username
             configs[name]["oob_password"] = oob_password
-            configs[name]["ssh_address"] = ssh_address
-            configs[name]["ssh_username"] = ssh_username
-            configs[name]["ssh_password"] = ssh_password
+            configs[name]["os_address"] = os_address
+            configs[name]["os_username"] = os_username
+            configs[name]["os_password"] = os_password
             app.storage.general["servers"] = configs.to_dict()
             self.add_server_to_tabs(name)
 

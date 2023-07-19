@@ -222,9 +222,9 @@ class Machine:
             return self._drive_temp
         if drive_temp_type == "SMART":
             self._drive_temp = smart.Smart(
-                address=self._config["ssh_address"],
-                username=self._config["ssh_password"],
-                password=self._config["ssh_username"],
+                address=self._config["os_address"],
+                username=self._config["os_username"],
+                password=self._config["os_password"],
             )
         else:
             self._drive_temp = None
