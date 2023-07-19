@@ -21,7 +21,7 @@ class Launcher:
         self._fms = dict()
 
     def run(self):
-        for name, config in configs.items():
+        for name, config in configs.to_dict().items():
             thread = threading.Thread(name="async_run", args=(name, config), target=self.thread)
             thread.start()
 
@@ -60,6 +60,12 @@ class Machine:
         self._status = None
         self._speed = None
         self._meas_temp_list = None
+        self._oob_address = ""
+        self._oob_password = ""
+        self._oob_username = ""
+        self._os_address = ""
+        self._os_password = ""
+        self._os_username = ""
 
     def configure(self, config):
         self._config = config
@@ -79,6 +85,7 @@ class Machine:
             )
             gpu_curve = None
             self._curves = [cpu_curve, drive_curve, gpu_curve]
+            self.store_credentials()
             int_speed = None
             current_speed = None
             final_speed = None
@@ -123,6 +130,27 @@ class Machine:
     def close(self):
         pass
 
+    def store_credentials(self):
+        self._oob_address = self._config.get("oob_address", "")
+        self._oob_password = self._config.get("oob_password", "")
+        self._oob_username = self._config.get("oob_username", "")
+        self._os_address = self._config.get("os_address", "")
+        self._os_password = self._config.get("os_password", "")
+        self._os_username = self._config.get("os_username", "")
+
+    @property
+    def have_credentials_changed(self):
+        if (
+            self._oob_address == self._config.get("oob_address", "")
+            and self._oob_password == self._config.get("oob_password", "")
+            and self._oob_username == self._config.get("oob_username", "")
+            and self._os_address == self._config.get("os_address", "")
+            and self._os_password == self._config.get("os_password", "")
+            and self._os_username == self._config.get("os_username", "")
+        ):
+            return False
+        return True
+
     @property
     def speed_ctrl(self):
         class_map = {
@@ -135,7 +163,7 @@ class Machine:
             "X11": {"class": sm.X11, "prefix": "oob"},
         }
         speed_ctrl_type = self._config.get("speed_ctrl_type", "None")
-        if speed_ctrl_type == self._speed_ctrl_type:
+        if speed_ctrl_type == self._speed_ctrl_type and self.have_credentials_changed is False:
             return self._speed_ctrl
         elif speed_ctrl_type == "None":
             self._speed_ctrl = None
@@ -160,7 +188,7 @@ class Machine:
             "X11": {"class": sm.X11, "prefix": "oob"},
         }
         cpu_temp_type = self._config.get("cpu_temp_type", "None")
-        if cpu_temp_type == self._cpu_temp_type:
+        if cpu_temp_type == self._cpu_temp_type and self.have_credentials_changed is False:
             return self._cpu_temp
         elif cpu_temp_type == "None":
             self._cpu_temp = None
@@ -179,7 +207,7 @@ class Machine:
             "SMART": {"class": smart.Smart, "prefix": "os"},
         }
         drive_temp_type = self._config.get("drive_temp_type", "None")
-        if drive_temp_type == self._drive_temp_type:
+        if drive_temp_type == self._drive_temp_type and self.have_credentials_changed is False:
             return self._drive_temp
         elif drive_temp_type == "None":
             self._drive_temp = None
