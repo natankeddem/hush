@@ -148,3 +148,4 @@ class Connections(Tab):
     def set_rate(self, control):
         name = control.sender.parent_slot.parent.default_slot.name
         configs[name]["rate"] = control.sender.value
+        app.storage.general[configs_version_string] = configs.to_dict()
