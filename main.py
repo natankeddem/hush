@@ -17,7 +17,6 @@ ui.colors(primary="#424242", secondary="#323232", accent="#424242")
 
 signal.signal(signal.SIGINT, app.shutdown)
 signal.signal(signal.SIGTERM, app.shutdown)
-signal.signal(signal.SIGKILL, app.shutdown)
 
 
 @ui.page("/shutdown")
