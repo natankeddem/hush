@@ -22,8 +22,14 @@ class Launcher:
 
     def run(self):
         for name, config in configs.items():
-            thread = threading.Thread(name="async_run", args=(name, config), target=self.thread)
-            thread.start()
+            if name not in self._fms:
+                self._fms[name]["machine"] = Machine(name=name, monitor_tab=self._monitor_tab)
+                self._fms[name]["thread"] = threading.Thread()
+            if self._fms[name]["thread"].is_alive() is False:
+                self._fms[name]["thread"] = threading.Thread(
+                    name=f"{name}_thread", args=(name, config), target=self.thread
+                )
+                self._fms[name]["thread"].start()
 
     def thread(self, name, config):
         if name not in self._fms:
