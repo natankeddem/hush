@@ -5,6 +5,7 @@ logger = logging.getLogger(__name__)
 from nicegui import app, ui
 import nicegui as ng
 import os
+import signal
 from tabs.connections import Connections
 from tabs.sensors_ctrls import SensorsCtrls
 from tabs.algorithms import Algorithms
@@ -13,6 +14,16 @@ from tabs.debug import Debug
 import control
 
 ui.colors(primary="#424242", secondary="#323232", accent="#424242")
+
+signal.signal(signal.SIGINT, app.shutdown)
+signal.signal(signal.SIGTERM, app.shutdown)
+signal.signal(signal.SIGKILL, app.shutdown)
+
+
+@ui.page("/shutdown")
+def shutdown():
+    app.shutdown()
+
 
 with ui.column().classes("w-full items-center") as tab_header_col:
     with ui.tabs().classes("w-full items-center") as tabs:

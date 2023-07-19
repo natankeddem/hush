@@ -38,6 +38,7 @@ class Launcher:
         self._fms[name]["machine"].report()
 
     def close(self):
+        logger.warning("Launcher shutdown initiated.")
         for fm in self._fms:
             try:
                 fm["machine"].close()

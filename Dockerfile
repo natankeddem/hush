@@ -57,4 +57,4 @@ RUN echo "**** install RACADM ****" && \
 # /opt/dell/srvadmin/bin/idracadm7 -r 10.1.7.180 -u root -p pass jobqueue view
 
 USER appuser
-CMD python3 main.py
+ENTRYPOINT ["python3", "main.py"]
