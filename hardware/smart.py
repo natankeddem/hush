@@ -30,7 +30,7 @@ class Smart(Device):
 
     def get_drive_temp(self, drive_path):
         try:
-            output = self.ssh_cmd(f"smartctl -l scttemp {drive_path}")
+            output = self.ssh_cmd(f"smartctl -x {drive_path}")
             temp = re.search(r"Current\s*[^T]*Temperature:\s*(\d+)", output)
             if temp is not None and temp.lastindex == 1:
                 return int(temp.group(1))
