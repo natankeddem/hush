@@ -22,7 +22,7 @@ class Smart(Device):
         drive_paths = list()
         try:
             output = self.ssh_cmd("fdisk -l")
-            drive_paths = re.findall("Disk (\/dev\/sd[a-z]+|\/dev\/nvm[0-9]+n[0-9]+)", output)
+            drive_paths = re.findall(r"Disk (\/dev\/sd[a-z]+|\/dev\/nvm[0-9]+n[0-9]+)", output)
         except Exception as e:
             logger.error(f"{self._address} failed to get cpu temperature from: {output}")
             raise e
@@ -31,7 +31,7 @@ class Smart(Device):
     def get_drive_temp(self, drive_path):
         try:
             output = self.ssh_cmd(f"smartctl -l scttemp {drive_path}")
-            temp = re.search("Current Temperature:\s+(\d+)", output)
+            temp = re.search(r"Current Temperature:\s+(\d+)", output)
             if temp is not None and temp.lastindex == 1:
                 return int(temp.group(1))
             else:

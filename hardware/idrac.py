@@ -58,7 +58,7 @@ class Redfish(Device):
         cpu_temps = list()
         try:
             sensors = str(self.redfish_cmd(path="Chassis/System.Embedded.1/Sensors"))
-            sensor_paths = re.findall("Chassis\/System.Embedded.1\/Sensors\/CPU\dTemp", sensors)
+            sensor_paths = re.findall(r"Chassis\/System.Embedded.1\/Sensors\/CPU\dTemp", sensors)
             for sensor_path in sensor_paths:
                 sensor_data = self.redfish_cmd(path=f"{sensor_path}")
                 cpu_temps.append(int(sensor_data["Reading"]))
