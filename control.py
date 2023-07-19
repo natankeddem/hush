@@ -3,7 +3,6 @@ import logging
 logger = logging.getLogger(__name__)
 import threading
 from typing import List
-import sys
 import numpy as np
 from scipy.interpolate import interp1d
 import math
@@ -65,6 +64,7 @@ class Machine:
         self._status = None
         self._speed = None
         self._meas_temp_list = None
+        self._measurements = AdDict()
         self._oob_address = ""
         self._oob_password = ""
         self._oob_username = ""
@@ -90,15 +90,17 @@ class Machine:
             )
             gpu_curve = None
             self._curves = [cpu_curve, drive_curve, gpu_curve]
+            self._meas_names = ["cpu_temp", "drive_temp", "gpu_temp"]
             self.store_credentials()
             int_speed = None
             current_speed = None
             final_speed = None
             meas_temp_list = list()
             try:
-                for t, c in dict(zip(self._temps, self._curves)).items():
+                for t, c, m in zip(self._temps, self._curves, self._meas_names):
                     if t is not None:
                         meas_temp = t.get_temp()
+                        self._measurements[m] = meas_temp
                         speed = c.calc(meas_temp)
                         meas_temp_list.append(meas_temp)
                         logger.debug(f"adjust={speed} values={c.speeds}")
@@ -127,10 +129,12 @@ class Machine:
             self._last_run_time = dt.now()
 
     def report(self):
-        self._monitor_tab.update_field(self._name, "time", f"Last Run Time = {str(self._last_run_time)}")
-        self._monitor_tab.update_field(self._name, "temp", f"Last Temperature = {self._meas_temp_list}")
-        self._monitor_tab.update_field(self._name, "adjust", f"Last Control Adjustment = {str(self._speed)}")
-        self._monitor_tab.update_field(self._name, "status", f"Last Status = {str(self._status)}")
+        self._monitor_tab.update_field(self._name, "time", self._last_run_time)
+        self._monitor_tab.update_field(self._name, "cpu_temp", self._measurements["cpu_temp"])
+        self._monitor_tab.update_field(self._name, "drive_temp", self._measurements["drive_temp"])
+        self._monitor_tab.update_field(self._name, "gpu_temp", self._measurements["gpu_temp"])
+        self._monitor_tab.update_field(self._name, "speed", self._speed)
+        self._monitor_tab.update_field(self._name, "status", self._status)
 
     def close(self):
         if self.speed_ctrl is not None:
