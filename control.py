@@ -235,14 +235,7 @@ class Machine:
         gpu_temp_type = self._config.get("gpu_temp_type", "None")
         if gpu_temp_type == self._gpu_temp_type:
             return self._gpu_temp
-        if gpu_temp_type == "SMART":
-            self._gpu_temp = smart.Smart(
-                address=self._config["ssh_address"],
-                username=self._config["ssh_password"],
-                password=self._config["ssh_username"],
-            )
-        else:
-            self._gpu_temp = None
+        self._gpu_temp = None
         return self._gpu_temp
 
 
