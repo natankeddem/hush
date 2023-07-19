@@ -110,4 +110,4 @@ dictConfig(LOGGING_CONFIG)
 import logging
 
 logger = logging.getLogger(__name__)
-logger.warn(f"***{logging_mode}Logging Started***")
+logger.warning(f"***{logging_mode}Logging Started***")
