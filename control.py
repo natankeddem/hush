@@ -125,109 +125,70 @@ class Machine:
 
     @property
     def speed_ctrl(self):
+        class_map = {
+            "iDRAC 7": {"class": idrac.Ipmi, "prefix": "oob"},
+            "iDRAC 8": {"class": idrac.Ipmi, "prefix": "oob"},
+            "iDRAC 9": {"class": idrac.Redfish, "prefix": "oob"},
+            "iLO 4": {"class": ilo.iLO4, "prefix": "oob"},
+            "X9": {"class": sm.X9, "prefix": "oob"},
+            "X10": {"class": sm.X10, "prefix": "oob"},
+            "X11": {"class": sm.X11, "prefix": "oob"},
+        }
         speed_ctrl_type = self._config.get("speed_ctrl_type", "None")
         if speed_ctrl_type == self._speed_ctrl_type:
             return self._speed_ctrl
-        elif speed_ctrl_type == "iDRAC 7" or speed_ctrl_type == "iDRAC 8":
-            self._speed_ctrl = idrac.Ipmi(
-                address=self._config["oob_address"],
-                password=self._config["oob_password"],
-                username=self._config["oob_username"],
-            )
-        elif speed_ctrl_type == "iDRAC 9":
-            self._speed_ctrl = idrac.Redfish(
-                address=self._config["oob_address"],
-                password=self._config["oob_password"],
-                username=self._config["oob_username"],
-            )
-        elif speed_ctrl_type == "iLO 4":
-            self._speed_ctrl = ilo.iLO4(
-                address=self._config["oob_address"],
-                password=self._config["oob_password"],
-                username=self._config["oob_username"],
-            )
-        elif speed_ctrl_type == "X9":
-            self._speed_ctrl = sm.X9(
-                address=self._config["oob_address"],
-                password=self._config["oob_password"],
-                username=self._config["oob_username"],
-            )
-        elif speed_ctrl_type == "X10":
-            self._speed_ctrl = sm.X10(
-                address=self._config["oob_address"],
-                password=self._config["oob_password"],
-                username=self._config["oob_username"],
-            )
-        elif speed_ctrl_type == "X11":
-            self._speed_ctrl = sm.X11(
-                address=self._config["oob_address"],
-                password=self._config["oob_password"],
-                username=self._config["oob_username"],
-            )
-        else:
+        elif speed_ctrl_type == "None":
             self._speed_ctrl = None
+        else:
+            self._speed_ctrl = class_map[speed_ctrl_type]["class"](
+                address=self._config[f"{class_map[speed_ctrl_type]['prefix']}_address"],
+                password=self._config[f"{class_map[speed_ctrl_type]['prefix']}_password"],
+                username=self._config[f"{class_map[speed_ctrl_type]['prefix']}_username"],
+            )
         self._speed_ctrl_type = speed_ctrl_type
         return self._speed_ctrl
 
     @property
     def cpu_temp(self):
+        class_map = {
+            "iDRAC 7": {"class": idrac.Ipmi, "prefix": "oob"},
+            "iDRAC 8": {"class": idrac.Ipmi, "prefix": "oob"},
+            "iDRAC 9": {"class": idrac.Redfish, "prefix": "oob"},
+            "iLO 4": {"class": ilo.iLO4, "prefix": "oob"},
+            "X9": {"class": sm.X9, "prefix": "oob"},
+            "X10": {"class": sm.X10, "prefix": "oob"},
+            "X11": {"class": sm.X11, "prefix": "oob"},
+        }
         cpu_temp_type = self._config.get("cpu_temp_type", "None")
         if cpu_temp_type == self._cpu_temp_type:
             return self._cpu_temp
-        elif cpu_temp_type == "iDRAC 7" or cpu_temp_type == "iDRAC 8":
-            self._cpu_temp = idrac.Ipmi(
-                address=self._config["oob_address"],
-                password=self._config["oob_password"],
-                username=self._config["oob_username"],
-            )
-        elif cpu_temp_type == "iDRAC 9":
-            self._cpu_temp = idrac.Redfish(
-                address=self._config["oob_address"],
-                password=self._config["oob_password"],
-                username=self._config["oob_username"],
-            )
-        elif cpu_temp_type == "iLO 4":
-            self._cpu_temp = ilo.iLO4(
-                address=self._config["oob_address"],
-                password=self._config["oob_password"],
-                username=self._config["oob_username"],
-            )
-        elif cpu_temp_type == "X9":
-            self._cpu_temp = sm.X9(
-                address=self._config["oob_address"],
-                password=self._config["oob_password"],
-                username=self._config["oob_username"],
-            )
-        elif cpu_temp_type == "X10":
-            self._cpu_temp = sm.X10(
-                address=self._config["oob_address"],
-                password=self._config["oob_password"],
-                username=self._config["oob_username"],
-            )
-        elif cpu_temp_type == "X11":
-            self._cpu_temp = sm.X11(
-                address=self._config["oob_address"],
-                password=self._config["oob_password"],
-                username=self._config["oob_username"],
-            )
-        else:
+        elif cpu_temp_type == "None":
             self._cpu_temp = None
+        else:
+            self._cpu_temp = class_map[cpu_temp_type]["class"](
+                address=self._config[f"{class_map[cpu_temp_type]['prefix']}_address"],
+                password=self._config[f"{class_map[cpu_temp_type]['prefix']}_password"],
+                username=self._config[f"{class_map[cpu_temp_type]['prefix']}_username"],
+            )
         self._cpu_temp_type = cpu_temp_type
         return self._cpu_temp
 
     @property
     def drive_temp(self):
+        class_map = {
+            "SMART": {"class": smart.Smart, "prefix": "os"},
+        }
         drive_temp_type = self._config.get("drive_temp_type", "None")
         if drive_temp_type == self._drive_temp_type:
             return self._drive_temp
-        if drive_temp_type == "SMART":
-            self._drive_temp = smart.Smart(
-                address=self._config["os_address"],
-                username=self._config["os_username"],
-                password=self._config["os_password"],
-            )
-        else:
+        elif drive_temp_type == "None":
             self._drive_temp = None
+        else:
+            self._drive_temp = class_map[drive_temp_type]["class"](
+                address=self._config[f"{class_map[drive_temp_type]['prefix']}_address"],
+                password=self._config[f"{class_map[drive_temp_type]['prefix']}_password"],
+                username=self._config[f"{class_map[drive_temp_type]['prefix']}_username"],
+            )
         return self._drive_temp
 
     @property
