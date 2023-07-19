@@ -5,9 +5,14 @@ from nicegui import app, ui
 import nicegui as ng
 from addict import Dict as AdDict
 
-if app.storage.general.get("servers", None) is None:
-    app.storage.general["servers"] = AdDict()
-configs = AdDict(dict(app.storage.general["servers"]))
+configs_version = int(100)
+configs_version_string = f"config_{configs_version}"
+configs = app.storage.general.get(configs_version_string, None)
+if configs is None:
+    logger.warning(f"Storage version not found, updating version to {configs_version}.")
+    logger.warning(f"Connections cleared, repeat setup procedure.")
+    app.storage.general[configs_version_string] = dict()
+configs = AdDict(dict(app.storage.general[configs_version_string]))
 tab_instances = dict()
 
 
@@ -50,8 +55,7 @@ class Tab:
         if tabs is None:
             if name in configs:
                 del configs[name]
-            if name in app.storage.general["servers"]:
-                del app.storage.general["servers"][name]
+            app.storage.general[configs_version_string] = configs.to_dict()
         for class_name, instance in tab_instances.items():
             if tabs is None or class_name in tabs:
                 instance.remove_server_from_tab(name)

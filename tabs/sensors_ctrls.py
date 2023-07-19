@@ -49,8 +49,9 @@ class SensorsCtrls(Tab):
         n = value.sender.parent_slot.parent.parent_slot.name
         configs[n][sensor_ctrl] = value.sender.value
         sensor = sensor_ctrl.split("_")[0]
-        del configs[n]["algo"]
-        app.storage.general["servers"] = configs.to_dict()
+        if "algo" in configs[n]:
+            del configs[n]["algo"]
+        app.storage.general[configs_version_string] = configs.to_dict()
         self.remove_server_from_tabs(name=n, tabs=["Algorithms"])
         self.add_server_to_tabs(name=n, tabs=["Algorithms"])
 

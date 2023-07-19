@@ -63,7 +63,7 @@ class Sliders:
                 label, value=pwm_value, min=0, max=100, step=1, on_change=lambda n: self._store_pwm(n)
             ).style("max-width: 75px")
             pwm.default_slot.name = f"{name}.{sensor}.{label}"
-            app.storage.general["servers"] = configs.to_dict()
+            app.storage.general[configs_version_string] = configs.to_dict()
 
     def _store_temp(self, ctrl):
         name = ctrl.sender.default_slot.name.split(".")[0]
@@ -71,7 +71,7 @@ class Sliders:
         level = ctrl.sender.default_slot.name.split(".")[2]
         temp = ctrl.sender.value
         configs[name]["algo"]["curves"][sensor]["temp"][level] = temp
-        app.storage.general["servers"] = configs.to_dict()
+        app.storage.general[configs_version_string] = configs.to_dict()
 
     def _store_pwm(self, ctrl):
         name = ctrl.sender.default_slot.name.split(".")[0]
@@ -79,7 +79,7 @@ class Sliders:
         level = ctrl.sender.default_slot.name.split(".")[2]
         pwm = ctrl.sender.value
         configs[name]["algo"]["curves"][sensor]["speed"][level] = pwm
-        app.storage.general["servers"] = configs.to_dict()
+        app.storage.general[configs_version_string] = configs.to_dict()
 
 
 class iDrac9Sliders(Sliders):
@@ -124,7 +124,7 @@ class iDrac9Sliders(Sliders):
             temp.default_slot.name = f"{name}.{sensor}.{label}"
             ui.label(label)
             configs[name]["algo"]["curves"][sensor]["speed"][label] = label
-            app.storage.general["servers"] = configs.to_dict()
+            app.storage.general[configs_version_string] = configs.to_dict()
 
 
 class Algorithms(Tab):

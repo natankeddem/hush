@@ -107,7 +107,7 @@ class Connections(Tab):
             configs[name]["os_address"] = os_address
             configs[name]["os_username"] = os_username
             configs[name]["os_password"] = os_password
-            app.storage.general["servers"] = configs.to_dict()
+            app.storage.general[configs_version_string] = configs.to_dict()
             self.add_server_to_tabs(name)
 
     def recall_server(self, name):
