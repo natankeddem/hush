@@ -21,7 +21,7 @@ class Launcher:
         self._fms = dict()
 
     def run(self):
-        for name, config in configs.to_dict().items():
+        for name, config in configs.items():
             thread = threading.Thread(name="async_run", args=(name, config), target=self.thread)
             thread.start()
 
