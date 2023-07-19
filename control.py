@@ -8,6 +8,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 import math
 from datetime import datetime as dt
+from addict import Dict as AdDict
 import hardware.idrac as idrac
 import hardware.ilo as ilo
 import hardware.supermicro as sm
@@ -18,7 +19,7 @@ from tabs import configs
 class Launcher:
     def __init__(self, monitor_tab) -> None:
         self._monitor_tab = monitor_tab
-        self._fms = dict()
+        self._fms = AdDict()
 
     def run(self):
         for name, config in configs.items():
@@ -32,17 +33,14 @@ class Launcher:
                 self._fms[name]["thread"].start()
 
     def thread(self, name, config):
-        if name not in self._fms:
-            self._fms[name] = Machine(name=name, monitor_tab=self._monitor_tab)
-
-        self._fms[name].configure(config)
-        self._fms[name].run()
-        self._fms[name].report()
+        self._fms[name]["machine"].configure(config)
+        self._fms[name]["machine"].run()
+        self._fms[name]["machine"].report()
 
     def close(self):
         for fm in self._fms:
             try:
-                fm["instance"].close()
+                fm["machine"].close()
             except:
                 pass
 
@@ -134,7 +132,26 @@ class Machine:
         self._monitor_tab.update_field(self._name, "status", f"Last Status = {str(self._status)}")
 
     def close(self):
-        pass
+        if self.speed_ctrl is not None:
+            try:
+                self.speed_ctrl.close()
+            except:
+                pass
+        if self.cpu_temp is not None:
+            try:
+                self.cpu_temp.close()
+            except:
+                pass
+        if self.drive_temp is not None:
+            try:
+                self.drive_temp.close()
+            except:
+                pass
+        if self.gpu_temp is not None:
+            try:
+                self.gpu_temp.close()
+            except:
+                pass
 
     def store_credentials(self):
         self._oob_address = self._config.get("oob_address", "")
