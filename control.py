@@ -5,6 +5,7 @@ import threading
 from typing import List
 import numpy as np
 from scipy.interpolate import interp1d
+import re
 import math
 from datetime import datetime as dt
 from addict import Dict as AdDict
@@ -26,8 +27,9 @@ class Launcher:
                 self._fms[name]["machine"] = Machine(name=name, monitor_tab=self._monitor_tab)
                 self._fms[name]["thread"] = threading.Thread()
             if self._fms[name]["thread"].is_alive() is False:
+                sanitized_name = re.sub(r"\s+", "", name, flags=re.UNICODE)
                 self._fms[name]["thread"] = threading.Thread(
-                    name=f"{name}_thread", args=(name, config), target=self.thread
+                    name=f"{sanitized_name}_thread", args=(name, config), target=self.thread
                 )
                 self._fms[name]["thread"].start()
 
