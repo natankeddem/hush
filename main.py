@@ -57,4 +57,4 @@ if os.environ.get("DISPLAY_DEBUG_TAB", "FALSE") == "TRUE":
 launcher = control.Launcher(monitor_tab=monitors)
 ui.timer(1, launcher.run)
 app.on_shutdown(launcher.close)
-ui.run(title="hush", reload=False, dark=True)
+ui.run(title="hush", favicon="🙉", reload=False, dark=True)
