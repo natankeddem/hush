@@ -1,5 +1,3 @@
-# FROM python:3.11.3-slim
-# FROM ubuntu:jammy
 FROM python:bookworm
 
 RUN \
@@ -31,13 +29,11 @@ WORKDIR /app
 ADD . /app
 RUN mkdir -p /app/logs
 
-RUN groupadd --system --gid 1000 appgroup
-RUN useradd -u 1000 -d /home/appuser -m -g 1000 appuser
-RUN  chown -R appuser /app
+RUN chmod 777 /app/resources/docker-entrypoint.sh
 
 # https://linux.dell.com/repo/community/openmanage/
 RUN echo "**** install RACADM ****" && \
-    echo 'deb http://linux.dell.com/repo/community/openmanage/11000/jammy jammy main' | \
+    echo "deb http://linux.dell.com/repo/community/openmanage/11000/jammy jammy main" | \
     tee -a /etc/apt/sources.list.d/linux.dell.com.sources.list && \
     wget https://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc && \
     apt-key add 0x1285491434D8786F.asc && \
@@ -54,7 +50,5 @@ RUN apt-get install -y srvadmin-idracadm8 || true
 COPY resources/srvadmin-x.postinst /var/lib/dpkg/info/srvadmin-idracadm8.postinst
 RUN echo "**** install RACADM ****" && \
     apt-get install -y srvadmin-idracadm8
-# /opt/dell/srvadmin/bin/idracadm7 -r 10.1.7.180 -u root -p pass jobqueue view
 
-USER appuser
-ENTRYPOINT ["python3", "main.py"]
+ENTRYPOINT ["/app/resources/docker-entrypoint.sh"]
