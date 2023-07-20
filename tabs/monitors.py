@@ -45,6 +45,8 @@ class Monitors(Tab):
                         {
                             "title": False,
                             "chart": {"type": "line"},
+                            "xAxis": {"title": {"text": None}, "labels": {"enabled": False}},
+                            "yAxis": {"title": {"text": None}},
                             "series": [
                                 {"name": "Speed", "data": []},
                                 {"name": "CPUTemp", "data": []},
