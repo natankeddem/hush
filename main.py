@@ -1,10 +1,12 @@
+import os
+
+os.environ["MPLCONFIGDIR"] = os.getcwd() + "/mpl/"
 import mylogging
 import logging
 
 logger = logging.getLogger(__name__)
 from nicegui import app, ui
 import nicegui as ng
-import os
 import signal
 from tabs.connections import Connections
 from tabs.sensors_ctrls import SensorsCtrls

@@ -18,17 +18,11 @@ if ! getent group "$PGID" >/dev/null; then
   groupadd -g "$PGID" appgroup
 fi
 
-# Create the appuser with the provided PUID and PGID
 useradd --create-home --shell /bin/bash --uid "$PUID" --gid "$PGID" appuser
-
-# Change the ownership of the /app directory to the newly created appuser
+mkdir -p /app/mpl
 chown -R appuser:appgroup /app
-
-# Prepare an array to pass all environment variables to the subshell
-# The array includes all environment variables except some common variables that may interfere with the subshell
-declare -a env_vars=("$(env | grep -v -E '^(SHELL|PWD|SHLVL|_|OLDPWD|TERM|LANG)=' | sed 's/"/\\"/g' | awk -F "=" '{printf "%s=\"%s\" ", $1, $2}')")
-
-# Prepare a command to run the Python program with all environment variables
-python_cmd="cd /app && ${env_vars[@]} python main.py"
+chmod -R 777 /usr/share/fonts
+chmod -R 777 /var/cache/fontconfig
+chmod -R 777 /usr/local/share/fonts
 
 exec su appuser -p -c "cd /app && python main.py"
