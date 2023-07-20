@@ -19,6 +19,9 @@ class Sliders:
             if configs[n].get("drive_temp_type", "None") != "None":
                 drives_curve_tab = ui.tab("Drives")
                 default_tab = drives_curve_tab
+            if configs[n].get("gpu_temp_type", "None") != "None":
+                gpu_curve_tab = ui.tab("GPU")
+                default_tab = gpu_curve_tab
         with ui.tab_panels(curve_tabs, value=default_tab, animated=False).classes("w-full").style("min-height: 300px"):
             if configs[n].get("cpu_temp_type", "None") != "None":
                 with ui.tab_panel(cpu_curve_tab).classes("w-full"):
@@ -29,8 +32,8 @@ class Sliders:
                             self._add_single(name=n, sensor="cpu", label="Medium", pwm_default=50, temp_default=50)
                             self._add_single(name=n, sensor="cpu", label="High", pwm_default=70, temp_default=60)
                             self._add_single(name=n, sensor="cpu", label="Max", pwm_default=100, temp_default=70)
-                        with ui.row().classes("w-full items-end justify-center"):
-                            ui.label("PWM %")
+                    with ui.row().classes("w-full items-end justify-center"):
+                        ui.label("PWM %")
             if configs[n].get("drive_temp_type", "None") != "None":
                 with ui.tab_panel(drives_curve_tab).classes("w-full"):
                     with ui.row().classes("w-full flex-center"):
@@ -40,6 +43,17 @@ class Sliders:
                             self._add_single(name=n, sensor="drive", label="Medium", pwm_default=50, temp_default=50)
                             self._add_single(name=n, sensor="drive", label="High", pwm_default=70, temp_default=60)
                             self._add_single(name=n, sensor="drive", label="Max", pwm_default=100, temp_default=70)
+                    with ui.row().classes("w-full items-end justify-center"):
+                        ui.label("PWM %")
+            if configs[n].get("gpu_temp_type", "None") != "None":
+                with ui.tab_panel(gpu_curve_tab).classes("w-full"):
+                    with ui.row().classes("w-full flex-center"):
+                        with ui.row().classes("w-full items-center justify-around"):
+                            self._add_single(name=n, sensor="gpu", label="Min", pwm_default=5, temp_default=30)
+                            self._add_single(name=n, sensor="gpu", label="Low", pwm_default=20, temp_default=40)
+                            self._add_single(name=n, sensor="gpu", label="Medium", pwm_default=50, temp_default=50)
+                            self._add_single(name=n, sensor="gpu", label="High", pwm_default=70, temp_default=60)
+                            self._add_single(name=n, sensor="gpu", label="Max", pwm_default=100, temp_default=70)
                     with ui.row().classes("w-full items-end justify-center"):
                         ui.label("PWM %")
 
@@ -93,6 +107,9 @@ class iDrac9Sliders(Sliders):
             if configs[n].get("drive_temp_type", "None") != "None":
                 drives_curve_tab = ui.tab("Drives")
                 default_tab = drives_curve_tab
+            if configs[n].get("gpu_temp_type", "None") != "None":
+                gpu_curve_tab = ui.tab("GPU")
+                default_tab = gpu_curve_tab
         with ui.tab_panels(curve_tabs, value=default_tab, animated=False).classes("w-full").style("min-height: 300px"):
             if configs[n].get("cpu_temp_type", "None") != "None":
                 with ui.tab_panel(cpu_curve_tab).classes("w-full"):
@@ -110,6 +127,14 @@ class iDrac9Sliders(Sliders):
                         self._add_single(name=n, sensor="drive", label="Medium", temp_default=50)
                         self._add_single(name=n, sensor="drive", label="High", temp_default=60)
                         self._add_single(name=n, sensor="drive", label="Max", temp_default=70)
+            if configs[n].get("gpu_temp_type", "None") != "None":
+                with ui.tab_panel(gpu_curve_tab).classes("w-full"):
+                    with ui.row().classes("w-full items-center justify-around"):
+                        self._add_single(name=n, sensor="gpu", label="Off", temp_default=30)
+                        self._add_single(name=n, sensor="gpu", label="Low", temp_default=40)
+                        self._add_single(name=n, sensor="gpu", label="Medium", temp_default=50)
+                        self._add_single(name=n, sensor="gpu", label="High", temp_default=60)
+                        self._add_single(name=n, sensor="gpu", label="Max", temp_default=70)
 
     def _add_single(self, name, sensor, label, temp_default):
         with ui.column().classes("items-center"):

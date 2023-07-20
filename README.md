@@ -18,6 +18,7 @@ GUI enabled Docker based fan controller. I appreciate all comments/feedback/bug 
 * Supermicro X10 [OOB]
 * Supermicro X11 [OOB]
 * SMART [OS] (drive temperatures only)
+* Nvidia GPU [OS]
 
 I am hoping to add more control/sensors in the future.
 

@@ -7,6 +7,7 @@ from . import *
 cpu_temp_types = ["None", "iDRAC 7", "iDRAC 8", "iDRAC 9", "iLO 4", "X9", "X10", "X11"]
 speed_ctrl_types = ["None", "iDRAC 7", "iDRAC 8", "iDRAC 9", "iLO 4", "X9", "X10", "X11"]
 drive_temp_types = ["None", "SMART"]
+gpu_temp_types = ["None", "Nvidia"]
 
 
 class SensorsCtrls(Tab):
@@ -34,21 +35,26 @@ class SensorsCtrls(Tab):
                     ).classes("w-full")
                     ui.select(
                         cpu_temp_types,
-                        label="Cpu Temperature Sensor",
-                        value=configs[name].get("cpu_temp_type", speed_ctrl_types[0]),
+                        label="CPU Temperature Sensor",
+                        value=configs[name].get("cpu_temp_type", cpu_temp_types[0]),
                         on_change=lambda v: self.set_sensor_ctrl("cpu_temp_type", v),
                     ).classes("w-full")
                     ui.select(
                         drive_temp_types,
                         label="Drive Temperature Sensor",
-                        value=configs[name].get("drive_temp_type", speed_ctrl_types[0]),
+                        value=configs[name].get("drive_temp_type", drive_temp_types[0]),
                         on_change=lambda v: self.set_sensor_ctrl("drive_temp_type", v),
+                    ).classes("w-full")
+                    ui.select(
+                        gpu_temp_types,
+                        label="GPU Temperature Sensor",
+                        value=configs[name].get("gpu_temp_type", gpu_temp_types[0]),
+                        on_change=lambda v: self.set_sensor_ctrl("gpu_temp_type", v),
                     ).classes("w-full")
 
     def set_sensor_ctrl(self, sensor_ctrl, value):
         n = value.sender.parent_slot.parent.parent_slot.name
         configs[n][sensor_ctrl] = value.sender.value
-        sensor = sensor_ctrl.split("_")[0]
         if "algo" in configs[n]:
             del configs[n]["algo"]
         app.storage.general[configs_version_string] = configs.to_dict()

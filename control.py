@@ -13,6 +13,7 @@ import hardware.idrac as idrac
 import hardware.ilo as ilo
 import hardware.supermicro as sm
 import hardware.smart as smart
+import hardware.gpu as gpu
 from tabs import configs
 
 
@@ -251,10 +252,20 @@ class Machine:
 
     @property
     def gpu_temp(self):
+        class_map = {
+            "Nvidia": {"class": gpu.Nvidia, "prefix": "os"},
+        }
         gpu_temp_type = self._config.get("gpu_temp_type", "None")
         if gpu_temp_type == self._gpu_temp_type:
             return self._gpu_temp
-        self._gpu_temp = None
+        elif gpu_temp_type == "None":
+            self._gpu_temp = None
+        else:
+            self._gpu_temp = class_map[gpu_temp_type]["class"](
+                address=self._config[f"{class_map[gpu_temp_type]['prefix']}_address"],
+                password=self._config[f"{class_map[gpu_temp_type]['prefix']}_password"],
+                username=self._config[f"{class_map[gpu_temp_type]['prefix']}_username"],
+            )
         return self._gpu_temp
 
 
