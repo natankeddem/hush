@@ -91,7 +91,10 @@ class Machine:
                 speeds=list(self._config["algo"]["curves"]["drive"]["speed"].values()),
                 temps=list(self._config["algo"]["curves"]["drive"]["temp"].values()),
             )
-            gpu_curve = None
+            gpu_curve = Curve(
+                speeds=list(self._config["algo"]["curves"]["gpu"]["speed"].values()),
+                temps=list(self._config["algo"]["curves"]["gpu"]["temp"].values()),
+            )
             self._curves = [cpu_curve, drive_curve, gpu_curve]
             self._meas_names = ["cpu_temp", "drive_temp", "gpu_temp"]
             self.store_credentials()
