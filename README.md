@@ -9,18 +9,27 @@
 ## Information
 GUI enabled Docker based fan controller. I appreciate all comments/feedback/bug reports.
 
-## Supported Protocols
-* iDRAC7 [OOB]
-* iDRAC8 [OOB]
-* iDRAC9 [OOB] (offset control only)
-* iLO4 [OOB] (must be running unlocked version)
-* Supermicro X9 [OOB]
-* Supermicro X10 [OOB]
-* Supermicro X11 [OOB]
-* SMART [OS] (drive temperatures only)
-* Nvidia GPU [OS]
+## Features
+* Single container controls multiple machines at once.
+* Tempurature calculation takes into account CPUs, Drives and GPUs.
+* Full GUI configuration, no YAML or INI file editing required.
+* Allows monitoring of temperatures and fan speeds.
 
-I am hoping to add more control/sensors in the future.
+## Supported Protocols
+
+| Driver         | Credentials | Temperature | Fan Control | Notes                            |
+|----------------|-------------|-------------|-------------|----------------------------------|
+| iDRAC7         | OOB         | IPMI        | IPMI        |                                  |
+| iDRAC8         | OOB         | IPMI        | IMPI        |                                  |
+| iDRAC9         | OOB         | Redfish     | RedFish     | offset control only              |
+| iLO4           | OOB         | Redfish     | Proprietary | must be running unlocked version |
+| Supermicro X9  | OOB         | IPMI        | IPMI        |                                  |
+| Supermicro X10 | OOB         | IPMI        | IPMI        |                                  |
+| Supermicro X11 | OOB         | IPMI        | IPMI        |                                  |
+| SMART          | OS          | smartctl    |             |                                  |
+| Nvidia GPU     | OS          | nvidia-smi  |             |                                  |
+
+I am hoping to add more controls and sensors in the future.
 
 ## Installation
 See docker-compose for reference.
