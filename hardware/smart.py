@@ -36,7 +36,7 @@ class Smart(Device):
             output = self.ssh_cmd(f'smartctl -x {drive_path} | grep -E "Temp|Cel|Cur|temp|cel|cur"')
             temp = re.search(r"Current\s*[^T]*Temperature:\s*(\d+)", output)
             if temp is not None and temp.lastindex == 1:
-                return int(temp.group(1))
+                return float(temp.group(1))
             else:
                 logger.info(f"{self._address} failed to get drive temperature {drive_path}:")
                 logger.info(f"cmd = {self._full_cmd}")
@@ -54,7 +54,7 @@ class Smart(Device):
             for drive_path in drive_paths:
                 temp = self.get_drive_temp(drive_path=drive_path)
                 if temp is not None:
-                    drive_temps.append(temp)
+                    drive_temps.append(float(temp))
             self._temp = int(np.mean(drive_temps))
             return self._temp
         except Exception as e:

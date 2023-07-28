@@ -46,7 +46,7 @@ class iLO4(Device):
         temperatures = self.redfish_cmd("chassis/1/Thermal")["Temperatures"]
         for t in temperatures:
             if t["Name"].find("CPU") != -1:
-                cpu_temps.append(int(t["CurrentReading"]))
+                cpu_temps.append(float(t["CurrentReading"]))
         if core is None:
             self._temp = int(np.mean(cpu_temps))
         else:

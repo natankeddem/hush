@@ -40,7 +40,7 @@ class X9(Device):
                 output = self.run_cmd(f'-c sdr get "{sensor}"')
                 data = output.split(",")
                 if data[0] == sensor and data[1] != "":
-                    cpu_temps.append(int(data[1]))
+                    cpu_temps.append(float(data[1]))
             if core is None:
                 self._temp = int(np.mean(cpu_temps))
             else:

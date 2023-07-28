@@ -26,7 +26,7 @@ class Nvidia(Gpu):
             output = self.ssh_cmd(f"nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader")
             temp_list = output.strip().splitlines()
             for i in range(len(temp_list)):
-                temp_list[i] = int(temp_list[i].strip())
+                temp_list[i] = float(temp_list[i].strip())
             temp = int(np.mean(temp_list))
             return temp
         except Exception as e:

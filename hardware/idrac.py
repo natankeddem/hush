@@ -61,7 +61,7 @@ class Redfish(Device):
             sensor_paths = re.findall(r"Chassis\/System.Embedded.1\/Sensors\/CPU\dTemp", sensors)
             for sensor_path in sensor_paths:
                 sensor_data = self.redfish_cmd(path=f"{sensor_path}")
-                cpu_temps.append(int(sensor_data["Reading"]))
+                cpu_temps.append(float(sensor_data["Reading"]))
         except Exception as e:
             logger.error(f"{self._address} failed to get cpu temperature from: {sensor_data}")
             raise e
@@ -151,7 +151,7 @@ class Ipmi(Device):
             for data in data_lines:
                 data = data.split(",")
                 if data[0] == "Temp" and data[1] != "":
-                    cpu_temps.append(int(data[1]))
+                    cpu_temps.append(float(data[1]))
             if core is None:
                 self._temp = int(np.mean(cpu_temps))
             else:
