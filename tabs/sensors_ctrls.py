@@ -4,8 +4,32 @@ logger = logging.getLogger(__name__)
 from nicegui import app, ui
 from . import *
 
-cpu_temp_types = ["None", "iDRAC 7", "iDRAC 8", "iDRAC 9", "iLO 4", "X9", "X10", "X11"]
-speed_ctrl_types = ["None", "iDRAC 7", "iDRAC 8", "iDRAC 9", "iLO 4", "X9", "X10", "X11"]
+cpu_temp_types = [
+    "None",
+    "Dell iDRAC 7",
+    "Dell iDRAC 8",
+    "Dell iDRAC 9",
+    "HP iLO 4",
+    "Supermicro X9",
+    "Supermicro X10",
+    "Supermicro X11",
+    "Cisco M3",
+    "Cisco M4",
+    "Cisco M5",
+]
+speed_ctrl_types = [
+    "None",
+    "Dell iDRAC 7",
+    "Dell iDRAC 8",
+    "Dell iDRAC 9",
+    "HP iLO 4",
+    "Supermicro X9",
+    "Supermicro X10",
+    "Supermicro X11",
+    "Cisco M3",
+    "Cisco M4",
+    "Cisco M5",
+]
 drive_temp_types = ["None", "SMART"]
 gpu_temp_types = ["None", "Nvidia"]
 
