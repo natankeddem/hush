@@ -12,6 +12,7 @@ from addict import Dict as AdDict
 import hardware.idrac as idrac
 import hardware.ilo as ilo
 import hardware.supermicro as sm
+import hardware.cisco as cisco
 import hardware.smart as smart
 import hardware.gpu as gpu
 from tabs import configs
@@ -188,13 +189,16 @@ class Machine:
     @property
     def speed_ctrl(self):
         class_map = {
-            "iDRAC 7": {"class": idrac.Ipmi, "prefix": "oob"},
-            "iDRAC 8": {"class": idrac.Ipmi, "prefix": "oob"},
-            "iDRAC 9": {"class": idrac.Redfish, "prefix": "oob"},
-            "iLO 4": {"class": ilo.iLO4, "prefix": "oob"},
-            "X9": {"class": sm.X9, "prefix": "oob"},
-            "X10": {"class": sm.X10, "prefix": "oob"},
-            "X11": {"class": sm.X11, "prefix": "oob"},
+            "Dell iDRAC 7": {"class": idrac.Ipmi, "prefix": "oob"},
+            "Dell iDRAC 8": {"class": idrac.Ipmi, "prefix": "oob"},
+            "Dell iDRAC 9": {"class": idrac.Redfish, "prefix": "oob"},
+            "HP iLO 4": {"class": ilo.iLO4, "prefix": "oob"},
+            "Supermicro X9": {"class": sm.X9, "prefix": "oob"},
+            "Supermicro X10": {"class": sm.X10, "prefix": "oob"},
+            "Supermicro X11": {"class": sm.X11, "prefix": "oob"},
+            "Cisco M3": {"class": cisco.M3, "prefix": "oob"},
+            "Cisco M4": {"class": cisco.M3, "prefix": "oob"},
+            "Cisco M5": {"class": cisco.M3, "prefix": "oob"},
         }
         speed_ctrl_type = self._config.get("speed_ctrl_type", "None")
         if speed_ctrl_type == self._speed_ctrl_type and self.have_credentials_changed is False:
@@ -213,13 +217,16 @@ class Machine:
     @property
     def cpu_temp(self):
         class_map = {
-            "iDRAC 7": {"class": idrac.Ipmi, "prefix": "oob"},
-            "iDRAC 8": {"class": idrac.Ipmi, "prefix": "oob"},
-            "iDRAC 9": {"class": idrac.Redfish, "prefix": "oob"},
-            "iLO 4": {"class": ilo.iLO4, "prefix": "oob"},
-            "X9": {"class": sm.X9, "prefix": "oob"},
-            "X10": {"class": sm.X10, "prefix": "oob"},
-            "X11": {"class": sm.X11, "prefix": "oob"},
+            "Dell iDRAC 7": {"class": idrac.Ipmi, "prefix": "oob"},
+            "Dell iDRAC 8": {"class": idrac.Ipmi, "prefix": "oob"},
+            "Dell iDRAC 9": {"class": idrac.Redfish, "prefix": "oob"},
+            "HP iLO 4": {"class": ilo.iLO4, "prefix": "oob"},
+            "Supermicro X9": {"class": sm.X9, "prefix": "oob"},
+            "Supermicro X10": {"class": sm.X10, "prefix": "oob"},
+            "Supermicro X11": {"class": sm.X11, "prefix": "oob"},
+            "Cisco M3": {"class": cisco.M3, "prefix": "oob"},
+            "Cisco M4": {"class": cisco.M3, "prefix": "oob"},
+            "Cisco M5": {"class": cisco.M3, "prefix": "oob"},
         }
         cpu_temp_type = self._config.get("cpu_temp_type", "None")
         if cpu_temp_type == self._cpu_temp_type and self.have_credentials_changed is False:
