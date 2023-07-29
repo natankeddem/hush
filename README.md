@@ -26,6 +26,9 @@ GUI enabled Docker based fan controller. I appreciate all comments/feedback/bug 
 | Supermicro X9  | OOB         | IPMI        | IPMI        |                                  |
 | Supermicro X10 | OOB         | IPMI        | IPMI        |                                  |
 | Supermicro X11 | OOB         | IPMI        | IPMI        |                                  |
+| Cisco M3       | OOB         | XML API     | XML API     | fan profile control only         |
+| Cisco M4       | OOB         | XML API     | XML API     | fan profile control only         |
+| Cisco M5       | OOB         | XML API     | XML API     | fan profile control only         |
 | SMART          | OS          | smartctl    |             |                                  |
 | Nvidia GPU     | OS          | nvidia-smi  |             |                                  |
 
