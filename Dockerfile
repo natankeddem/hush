@@ -7,7 +7,7 @@ RUN apt install -y \
     sshpass
 
 ADD requirements.txt .
-RUN python -m pip install -r requirements.txt
+RUN python -m pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /app
 ADD . /app
