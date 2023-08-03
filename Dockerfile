@@ -1,4 +1,4 @@
-FROM python:bookworm
+FROM python:3.11.3-slim
 
 RUN echo "**** install runtime dependencies ****"
 RUN apt update
