@@ -67,6 +67,7 @@ class Machine:
         self._last_run_time = dt.now()
         self._status = None
         self._speed = None
+        self._int_speed = None
         self._meas_temp_list = None
         self._measurements = AdDict()
         self._oob_address = ""
@@ -99,7 +100,7 @@ class Machine:
             self._curves = [cpu_curve, drive_curve, gpu_curve]
             self._meas_names = ["cpu_temp", "drive_temp", "gpu_temp"]
             self.store_credentials()
-            int_speed = None
+            highest_speed = None
             current_speed = None
             final_speed = None
             meas_temp_list = list()
@@ -116,14 +117,15 @@ class Machine:
                                 current_speed = c.speeds.index(speed)
                             else:
                                 current_speed = speed
-                            if int_speed is None or current_speed > int_speed:
-                                int_speed = current_speed
+                            if highest_speed is None or current_speed > highest_speed:
+                                highest_speed = current_speed
                                 if isinstance(speed, str) is True:
-                                    final_speed = speed
+                                    final_speed = c.speeds[highest_speed]
                                 else:
-                                    final_speed = current_speed
+                                    final_speed = highest_speed
                 if final_speed is not None:
                     self._speed = final_speed
+                    self._int_speed = highest_speed
                     logger.info(f"Temperature={meas_temp} -> Fan Speed={self._speed}")
                     self.speed_ctrl.set_speed(self._speed)
                     self._meas_temp_list = meas_temp_list
@@ -140,7 +142,7 @@ class Machine:
         self._monitor_tab.update_field(self._name, "cpu_temp", self._measurements["cpu_temp"])
         self._monitor_tab.update_field(self._name, "drive_temp", self._measurements["drive_temp"])
         self._monitor_tab.update_field(self._name, "gpu_temp", self._measurements["gpu_temp"])
-        self._monitor_tab.update_field(self._name, "speed", self._speed)
+        self._monitor_tab.update_field(self._name, "speed", self._int_speed)
         self._monitor_tab.update_field(self._name, "status", self._status)
 
     def close(self):
@@ -308,7 +310,7 @@ class Curve:
         elif temp > self._temps[-1]:
             set_value = self._speeds[-1]
         else:
-            for s, t in zip(self._speeds, self._temps).items():
+            for s, t in zip(self._speeds, self._temps):
                 if temp > t:
                     set_value = s
                 logger.info(f"temp={t} speed={s} set_value={set_value}")
