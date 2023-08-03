@@ -6,7 +6,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 from nicegui import app, ui
-import nicegui as ng
 from tabs.connections import Connections
 from tabs.sensors_ctrls import SensorsCtrls
 from tabs.algorithms import Algorithms

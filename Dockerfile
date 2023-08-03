@@ -1,9 +1,8 @@
 FROM python:bookworm
 
-RUN \
-    echo "**** install runtime dependencies ****" && \
-    apt-get update && \
-    apt-get install -y \
+RUN echo "**** install runtime dependencies ****"
+RUN apt update
+RUN apt install -y \
     ipmitool \
     sshpass
 
@@ -15,5 +14,8 @@ ADD . /app
 RUN mkdir -p /app/logs
 
 RUN chmod 777 /app/resources/docker-entrypoint.sh
+
+EXPOSE 8080
+ENV PYTHONUNBUFFERED True
 
 ENTRYPOINT ["/app/resources/docker-entrypoint.sh"]
