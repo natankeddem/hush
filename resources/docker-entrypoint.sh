@@ -27,11 +27,14 @@ chown appuser:appgroup /home/appuser/.bashrc
 export HOME=/home/appuser
 # Set permissions on font directories.
 if [ -d "/usr/share/fonts" ]; then
-chmod -R 777 /usr/share/fonts
+  chmod -R 777 /usr/share/fonts
 fi
 if [ -d "/var/cache/fontconfig" ]; then
-chmod -R 777 /var/cache/fontconfig
+  chmod -R 777 /var/cache/fontconfig
 fi
 if [ -d "/usr/local/share/fonts" ]; then
-chmod -R 777 /usr/local/share/fonts
+  chmod -R 777 /usr/local/share/fonts
 fi
+# Switch to appuser and execute the Docker CMD or passed in command-line arguments.
+# Using setpriv let's it run as PID 1 which is required for proper signal handling (similar to gosu/su-exec).
+exec setpriv --reuid=$PUID --regid=$PGID --init-groups $@

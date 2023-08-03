@@ -19,3 +19,4 @@ EXPOSE 8080
 ENV PYTHONUNBUFFERED True
 
 ENTRYPOINT ["/app/resources/docker-entrypoint.sh"]
+CMD ["python", "main.py"]
