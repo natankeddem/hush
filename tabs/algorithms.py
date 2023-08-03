@@ -229,7 +229,7 @@ class Algorithms(Tab):
                     if ctrl_type == "Dell iDRAC 9":
                         sliders = iDrac9Sliders(expansion)
                         sliders.add()
-                    if ctrl_type == "Cisco M3" or ctrl_type == "Cisco M4" or ctrl_type == "Cisco M5":
+                    elif ctrl_type == "Cisco M3" or ctrl_type == "Cisco M4" or ctrl_type == "Cisco M5":
                         sliders = CiscoSliders(expansion)
                         sliders.add()
                     else:
