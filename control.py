@@ -16,6 +16,7 @@ import hardware.cisco as cisco
 import hardware.smart as smart
 import hardware.gpu as gpu
 from tabs import configs
+from simple_pid import PID
 
 
 class Launcher:
@@ -76,6 +77,10 @@ class Machine:
         self._os_address = ""
         self._os_password = ""
         self._os_username = ""
+        self._pids = dict()
+        self._pids["cpu"] = PID(5, 0.01, 0.1, setpoint=40)
+        self._pids["drive"] = PID(5, 0.01, 0.1, setpoint=40)
+        self._pids["gpu"] = PID(5, 0.01, 0.1, setpoint=40)
 
     def configure(self, config):
         self._config = config
@@ -97,45 +102,11 @@ class Machine:
                 speeds=list(self._config["algo"]["curves"]["gpu"]["speed"].values()),
                 temps=list(self._config["algo"]["curves"]["gpu"]["temp"].values()),
             )
-            self._curves = [cpu_curve, drive_curve, gpu_curve]
-            self._meas_names = ["cpu_temp", "drive_temp", "gpu_temp"]
-            self.store_credentials()
-            highest_speed = None
-            current_speed = None
-            final_speed = None
-            meas_temp_list = list()
-            try:
-                for t, c, m in zip(self._temps, self._curves, self._meas_names):
-                    if t is not None:
-                        meas_temp = t.get_temp()
-                        self._measurements[m] = meas_temp
-                        speed = c.calc(meas_temp)
-                        meas_temp_list.append(meas_temp)
-                        logger.debug(f"adjust={speed} values={c.speeds}")
-                        if speed is not None:
-                            if isinstance(speed, str) is True:
-                                current_speed = c.speeds.index(speed)
-                            else:
-                                current_speed = speed
-                            if highest_speed is None or current_speed > highest_speed:
-                                highest_speed = current_speed
-                                if isinstance(speed, str) is True:
-                                    final_speed = c.speeds[highest_speed]
-                                else:
-                                    final_speed = highest_speed
-                if final_speed is not None:
-                    self._speed = final_speed
-                    self._int_speed = highest_speed
-                    logger.info(f"Temperature={meas_temp} -> Fan Speed={self._speed}")
-                    self.speed_ctrl.set_speed(self._speed)
-                    self._meas_temp_list = meas_temp_list
-                    self._status = True
-            except Exception as e:
-                self._status = False
-                logger.error(f"Connection to {self._name} failed!")
-                logger.error(f"{self._name}'s config={self._config}!")
-                logger.exception(e)
-            self._last_run_time = dt.now()
+                if self._config["algo"][n].get("type", "curve") == "pid":
+                    self._config_pid(n)
+                    speed = round(-1 * self._pids[n](meas_temp))
+                else:
+                    speed = c.calc(meas_temp)
 
     def report(self):
         self._monitor_tab.update_field(self._name, "time", self._last_run_time)
@@ -174,6 +145,14 @@ class Machine:
         self._os_address = self._config.get("os_address", "")
         self._os_password = self._config.get("os_password", "")
         self._os_username = self._config.get("os_username", "")
+
+    def _config_pid(self, sensor):
+        self._pids[sensor].tunings = (
+            self._config["algo"][sensor]["pid"].get("kp", 5),
+            self._config["algo"][sensor]["pid"].get("ki", 0.01),
+            self._config["algo"][sensor]["pid"].get("kd", 0.1),
+        )
+        self._pids[sensor].setpoint = self._config["algo"][sensor]["pid"].get("target", 40)
 
     @property
     def have_credentials_changed(self):
