@@ -119,9 +119,10 @@ class Machine:
                 if self._config["algo"][n].get("type", "curve") == "pid":
                     self._config_pid(n)
                     speed = round(-1 * self._pids[n](meas_temp))
+                    logger.debug(f"{self.speed_ctrl.address} Temperature={meas_temp} Speed={speed}")
                 else:
                     speed = c.calc(meas_temp)
-                logger.debug(f"adjust={speed} values={c.speeds}")
+                    logger.debug(f"{self.speed_ctrl.address} Temperature={meas_temp} Speed={speed} Speeds={c.speeds}")
                 if speed is not None:
                     if isinstance(speed, str) is True:
                         current_speed = c.speeds.index(speed)
@@ -136,7 +137,7 @@ class Machine:
         if final_speed is not None:
             self._speed = final_speed
             self._int_speed = highest_speed
-            logger.info(f"Temperature={meas_temp} -> Fan Speed={self._speed}")
+            logger.info(f"{self.speed_ctrl.address} Temperature={meas_temp} -> Fan Speed={self._speed}")
             self.speed_ctrl.set_speed(self._speed)
             self._status = True
         self._report()
