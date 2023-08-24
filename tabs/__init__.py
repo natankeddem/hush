@@ -5,7 +5,7 @@ from nicegui import app, ui
 import nicegui as ng
 from addict import Dict as AdDict
 
-configs_version = int(100)
+configs_version = int(101)
 configs_version_string = f"config_{configs_version}"
 configs = app.storage.general.get(configs_version_string, None)
 if configs is None:
