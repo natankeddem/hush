@@ -131,7 +131,7 @@ class Ipmi(Device):
 
     def run_cmd(self, cmd):
         full_cmd = f"{self.base_cmd} {cmd}"
-        value = subprocess.run(shlex.split(full_cmd), capture_output=True, timeout=5)
+        value = subprocess.run(shlex.split(full_cmd), capture_output=True, timeout=10)
         if value.returncode != 0:
             logger.error(f"{self._address} failed to run_cmd {full_cmd}")
             raise Exception

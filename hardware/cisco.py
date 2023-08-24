@@ -28,7 +28,6 @@ class M3:
         self._password = password
         self._username = username
         self._temp = None
-        self._adjust = None
         self._base_path = f"https://{self._address}/nuova"
         self._last_cmd = None
         self._last_response = None
