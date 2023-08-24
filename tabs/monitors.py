@@ -8,92 +8,110 @@ from nicegui import app, ui
 from . import *
 
 
+class Monitor:
+    def __init__(self, name, expansion):
+        self._name = name
+        self._expansion = expansion
+        self._time = None
+        self._cpu_temp = None
+        self._drive_temp = None
+        self._gpu_temp = None
+        self._speed = None
+        self._status = None
+        self._history = dict()
+        self._history["speed"] = deque(maxlen=100)
+        self._history["cpu_temp"] = deque(maxlen=100)
+        self._history["drive_temp"] = deque(maxlen=100)
+        self._history["gpu_temp"] = deque(maxlen=100)
+        with self._expansion:
+            self._add_labels()
+            self._add_chart()
+
+    def _add_labels(self):
+        self._time = ui.label()
+        self._cpu_temp = ui.label()
+        self._drive_temp = ui.label()
+        self._gpu_temp = ui.label()
+        self._speed = ui.label()
+        self._status = ui.label()
+
+    def _add_chart(self):
+        self._chart = ui.chart(
+            {
+                "title": False,
+                "chart": {
+                    "type": "line",
+                    "backgroundColor": "#222",
+                },
+                "xAxis": {
+                    "title": {"text": None},
+                    "labels": {"enabled": False},
+                    "lineColor": "#FFF",
+                    "tickColor": "#FFF",
+                },
+                "yAxis": {
+                    "title": {"text": None},
+                    "lineColor": "#FFF",
+                    "tickColor": "#FFF",
+                    "labels": {"style": {"color": "#FFF"}},
+                },
+                "legend": {"itemStyle": {"color": "#FFF"}},
+                "tooltip": {"split": True, "shared": True, "distance": 30, "padding": 5},
+                "series": [
+                    {"name": "Speed", "data": [0, 0]},
+                    {"name": "CPU", "data": [0, 0]},
+                    {"name": "Drive", "data": [0, 0]},
+                    {"name": "GPU", "data": [0, 0]},
+                ],
+                "credits": {"enabled": False},
+            }
+        ).classes("w-full h-64")
+
+    def update_field(self, field, value):
+        if field == "time":
+            time = value.strftime("%m/%d/%Y, %H:%M:%S")
+            self._time.text = f"Last Run Time = {time}"
+        elif field == "cpu_temp":
+            self._cpu_temp.text = f"Last CPU Temperature = {str(value)}"
+            self._history["cpu_temp"].append(value)
+            self._chart.options["series"][1]["data"] = list(self._history["cpu_temp"])
+        elif field == "drive_temp":
+            self._drive_temp.text = f"Last Drive Temperature = {str(value)}"
+            self._history["drive_temp"].append(value)
+            self._chart.options["series"][2]["data"] = list(self._history["drive_temp"])
+        elif field == "gpu_temp":
+            self._gpu_temp.text = f"Last GPU Temperature = {str(value)}"
+            self._history["gpu_temp"].append(value)
+            self._chart.options["series"][3]["data"] = list(self._history["gpu_temp"])
+        elif field == "speed":
+            self._speed.text = f"Last Speed Adjustment = {str(value)}"
+            self._history["speed"].append(value)
+            self._chart.options["series"][0]["data"] = list(self._history["speed"])
+            self._chart.update()
+        elif field == "status":
+            self._status.text = f"Last Status = {str(value)}"
+
+
 class Monitors(Tab):
     def __init__(self):
-        super().__init__()
         self._name = None
         self._card = None
-        self._column = None
-        self._expansions = dict()
-        self._charts = AdDict()
+        self._monitors = dict()
+        super().__init__()
 
-    def tab_populate(self):
-        self._card = ui.card().style("min-width: 600px").classes("justify-center no-shadow border-[2px]")
+    def _tab_populate(self):
+        self._card = ui.card().style("min-width: 700px").classes("justify-center no-shadow border-[2px]")
         with self._card:
-            self._column = ui.column().classes("w-full")
+            self._servers_column = ui.column().classes("w-full")
 
-    def add_server_to_tab(self, name):
-        row = add_row(name=name, column=self._column)
-        if row is not None:
-            with row:
-                expansion = ui.expansion(name, icon="query_stats").classes("w-full")
-                self._expansions[name] = expansion
-                with expansion:
-                    time = ui.label()
-                    time.default_slot.name = "time"
-                    cpu_temp = ui.label()
-                    cpu_temp.default_slot.name = "cpu_temp"
-                    drive_temp = ui.label()
-                    drive_temp.default_slot.name = "drive_temp"
-                    gpu_temp = ui.label()
-                    gpu_temp.default_slot.name = "gpu_temp"
-                    adjust = ui.label()
-                    adjust.default_slot.name = "speed"
-                    status = ui.label()
-                    status.default_slot.name = "status"
-                    self._charts[name]["display"] = ui.chart(
-                        {
-                            "title": False,
-                            "chart": {"type": "line"},
-                            "xAxis": {"title": {"text": None}, "labels": {"enabled": False}},
-                            "yAxis": {"title": {"text": None}},
-                            "series": [
-                                {"name": "Speed", "data": []},
-                                {"name": "CPUTemp", "data": []},
-                                {"name": "DriveTemp", "data": []},
-                                {"name": "GPUTemp", "data": []},
-                            ],
-                        }
-                    ).classes("w-full h-64")
-                    self._charts[name]["history"]["speed"] = deque(maxlen=100)
-                    self._charts[name]["history"]["cpu_temp"] = deque(maxlen=100)
-                    self._charts[name]["history"]["drive_temp"] = deque(maxlen=100)
-                    self._charts[name]["history"]["gpu_temp"] = deque(maxlen=100)
+    def _add_server_content(self, name, row):
+        expansion = ui.expansion(name, icon="query_stats").classes("w-full")
+        self._monitors[name] = Monitor(name=name, expansion=expansion)
 
-    def remove_server_from_tab(self, name):
-        remove_row(name, self._column)
+    def remove_server(self, name):
+        # self._servers[name].remove()
+        super().remove_server(name)
+        del self._monitors[name]
 
     def update_field(self, name, field, value):
-        if name in self._expansions:
-            for c in self._expansions[name].default_slot.children:
-                if c.default_slot.name == field:
-                    if field == "time":
-                        time = value.strftime("%m/%d/%Y, %H:%M:%S")
-                        c.text = f"Last Run Time = {time}"
-                    elif field == "cpu_temp":
-                        c.text = f"Last CPU Temperature = {str(value)}"
-                        self._charts[name]["history"]["cpu_temp"].append(value)
-                        self._charts[name]["display"].options["series"][1]["data"] = list(
-                            self._charts[name]["history"]["cpu_temp"]
-                        )
-                    elif field == "drive_temp":
-                        c.text = f"Last Drive Temperature = {str(value)}"
-                        self._charts[name]["history"]["drive_temp"].append(value)
-                        self._charts[name]["display"].options["series"][2]["data"] = list(
-                            self._charts[name]["history"]["drive_temp"]
-                        )
-                    elif field == "gpu_temp":
-                        c.text = f"Last GPU Temperature = {str(value)}"
-                        self._charts[name]["history"]["gpu_temp"].append(value)
-                        self._charts[name]["display"].options["series"][3]["data"] = list(
-                            self._charts[name]["history"]["gpu_temp"]
-                        )
-                    elif field == "speed":
-                        c.text = f"Last Speed Adjustment = {str(value)}"
-                        self._charts[name]["history"]["speed"].append(value)
-                        self._charts[name]["display"].options["series"][0]["data"] = list(
-                            self._charts[name]["history"]["speed"]
-                        )
-                        self._charts[name]["display"].update()
-                    elif field == "status":
-                        c.text = f"Last Status = {str(value)}"
+        self._monitors[name].update_field(field, value)
