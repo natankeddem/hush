@@ -5,3 +5,4 @@ numpy==1.25.0
 requests==2.31.0
 scipy==1.11.1
 xmltodict==0.13.0
+simple-pid==2.0.0
