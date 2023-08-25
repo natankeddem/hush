@@ -33,20 +33,15 @@ with ui.column().classes("w-full items-center") as tabs_content_col:
     with ui.tab_panels(tabs, value=connections_tab, animated=False).classes("column items-center justify-center"):
         with ui.tab_panel(connections_tab).style("min-height: 600px"):
             connections = Connections()
-            connections.tab_populate()
         with ui.tab_panel(sensors_ctrls_tab).style("min-height: 600px"):
             sensors_ctrls = SensorsCtrls()
-            sensors_ctrls.tab_populate()
         with ui.tab_panel(algorithms_tab).style("min-height: 600px"):
             algorithms = Algorithms()
-            algorithms.tab_populate()
         with ui.tab_panel(monitors_tab).style("min-height: 600px"):
             monitors = Monitors()
-            monitors.tab_populate()
         if os.environ.get("DISPLAY_DEBUG_TAB", "FALSE") == "TRUE":
             with ui.tab_panel(debug_tab).style("min-height: 600px"):
                 debug = Debug()
-                debug.tab_populate()
 
 app.on_connect(connections.handle_connection)
 if os.environ.get("DISPLAY_DEBUG_TAB", "FALSE") == "TRUE":

@@ -4,7 +4,7 @@ logger = logging.getLogger(__name__)
 from nicegui import app, ui
 from . import *
 
-cpu_temp_types = [
+cpu_sensor_names = [
     "None",
     "Dell iDRAC 7",
     "Dell iDRAC 8",
@@ -17,7 +17,7 @@ cpu_temp_types = [
     "Cisco M4",
     "Cisco M5",
 ]
-speed_ctrl_types = [
+speed_ctrl_names = [
     "None",
     "Dell iDRAC 7",
     "Dell iDRAC 8",
@@ -30,60 +30,63 @@ speed_ctrl_types = [
     "Cisco M4",
     "Cisco M5",
 ]
-drive_temp_types = ["None", "SMART"]
-gpu_temp_types = ["None", "Nvidia"]
+drive_sensor_names = ["None", "SMART"]
+gpu_sensor_names = ["None", "Nvidia"]
+
+
+class Settings:
+    def __init__(self, name, expansion):
+        self._name = name
+        self._expansion = expansion
+        with self._expansion:
+            self._add_selections()
+
+    def _add_selections(self):
+        ui.select(
+            speed_ctrl_names,
+            label="Speed Controller",
+            value=configs[self._name].get("speed", speed_ctrl_names[0]),
+            on_change=lambda e: self._store("speed", e.value),
+        ).classes("w-full")
+        ui.select(
+            cpu_sensor_names,
+            label="CPU Temperature Sensor",
+            value=configs[self._name].get("cpu", cpu_sensor_names[0]),
+            on_change=lambda e: self._store("cpu", e.value),
+        ).classes("w-full")
+        ui.select(
+            drive_sensor_names,
+            label="Drive Temperature Sensor",
+            value=configs[self._name].get("drive", drive_sensor_names[0]),
+            on_change=lambda e: self._store("drive", e.value),
+        ).classes("w-full")
+        ui.select(
+            gpu_sensor_names,
+            label="GPU Temperature Sensor",
+            value=configs[self._name].get("gpu", gpu_sensor_names[0]),
+            on_change=lambda e: self._store("gpu", e.value),
+        ).classes("w-full")
+
+    def _store(self, setting, value):
+        configs[self._name][setting] = value
+        if "algo" in configs[self._name]:
+            del configs[self._name]["algo"]
+        app.storage.general[configs_version_string] = configs.to_dict()
+        tabs.rebuild_server(name=self._name, tabs=["Algorithms"])
 
 
 class SensorsCtrls(Tab):
     def __init__(self):
-        super().__init__()
         self._name = None
         self._card = None
-        self._column = None
+        super().__init__()
 
-    def tab_populate(self):
-        self._card = ui.card().style("min-width: 600px").classes("justify-center no-shadow border-[2px]")
+    def _tab_populate(self):
+        self._card = ui.card().style("min-width: 700px").classes("justify-center no-shadow border-[2px]")
         with self._card:
-            self._column = ui.column().classes("w-full")
+            self._servers_column = ui.column().classes("w-full")
 
-    def add_server_to_tab(self, name):
-        row = add_row(name=name, column=self._column)
-        if row is not None:
-            with row.classes("justify-start"):
-                with ui.expansion(name, icon="settings").classes("w-full"):
-                    ui.select(
-                        speed_ctrl_types,
-                        label="Speed Controller",
-                        value=configs[name].get("speed_ctrl_type", speed_ctrl_types[0]),
-                        on_change=lambda v: self.set_sensor_ctrl("speed_ctrl_type", v),
-                    ).classes("w-full")
-                    ui.select(
-                        cpu_temp_types,
-                        label="CPU Temperature Sensor",
-                        value=configs[name].get("cpu_temp_type", cpu_temp_types[0]),
-                        on_change=lambda v: self.set_sensor_ctrl("cpu_temp_type", v),
-                    ).classes("w-full")
-                    ui.select(
-                        drive_temp_types,
-                        label="Drive Temperature Sensor",
-                        value=configs[name].get("drive_temp_type", drive_temp_types[0]),
-                        on_change=lambda v: self.set_sensor_ctrl("drive_temp_type", v),
-                    ).classes("w-full")
-                    ui.select(
-                        gpu_temp_types,
-                        label="GPU Temperature Sensor",
-                        value=configs[name].get("gpu_temp_type", gpu_temp_types[0]),
-                        on_change=lambda v: self.set_sensor_ctrl("gpu_temp_type", v),
-                    ).classes("w-full")
-
-    def set_sensor_ctrl(self, sensor_ctrl, value):
-        n = value.sender.parent_slot.parent.parent_slot.name
-        configs[n][sensor_ctrl] = value.sender.value
-        if "algo" in configs[n]:
-            del configs[n]["algo"]
-        app.storage.general[configs_version_string] = configs.to_dict()
-        self.remove_server_from_tabs(name=n, tabs=["Algorithms"])
-        self.add_server_to_tabs(name=n, tabs=["Algorithms"])
-
-    def remove_server_from_tab(self, name):
-        remove_row(name, self._column)
+    def _add_server_content(self, name, row):
+        row.classes("justify-start")
+        expansion = ui.expansion(name, icon="settings").classes("w-full")
+        Settings(name=name, expansion=expansion)

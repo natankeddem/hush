@@ -11,13 +11,14 @@ class Debug(Tab):
         self._card = None
         self._column = None
         self._log = None
+        super().__init__()
 
-    def tab_populate(self):
+    def _tab_populate(self):
         self._card = ui.card().classes("justify-center no-shadow border-[2px]")
         with self._card:
             self._column = ui.column().classes("w-full")
             with self._column:
-                self._log = ui.log(max_lines=10).style("min-width: 800px").style("min-height: 400px")
+                self._log = ui.log(max_lines=10).style("min-width: 700px").style("min-height: 400px")
 
     def update_log(self):
         if self._log is not None:

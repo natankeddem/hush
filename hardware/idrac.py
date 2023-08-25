@@ -72,7 +72,6 @@ class Redfish(Device):
         return self._temp
 
     def set_speed(self, speed):
-        self._speed = speed
         if isinstance(speed, str) is True:
             offsets = {
                 "Off": self.Fan_Offset.OFF,
@@ -102,17 +101,19 @@ class Redfish(Device):
             self.Fan_Offset.HIGH: "High",
             self.Fan_Offset.MAX: "Max",
         }
-        output = self.redfish_cmd(
-            path="Managers/System.Embedded.1/Attributes",
-            payload={"Attributes": {"ThermalSettings.1.FanSpeedOffset": offsets[offset]}},
-        )
-        output = json.dumps(output)
-        try:
-            output.index("The request completed successfully.")
-            output.index("The operation successfully completed.")
-        except Exception as e:
-            logger.error(f"{self._address} failed to set offset; cmd response: {output}")
-            raise e
+        if self._speed != offsets[offset]:
+            self._speed = offsets[offset]
+            output = self.redfish_cmd(
+                path="Managers/System.Embedded.1/Attributes",
+                payload={"Attributes": {"ThermalSettings.1.FanSpeedOffset": self._speed}},
+            )
+            output = json.dumps(output)
+            try:
+                output.index("The request completed successfully.")
+                output.index("The operation successfully completed.")
+            except Exception as e:
+                logger.error(f"{self._address} failed to set offset; cmd response: {output}")
+                raise e
 
 
 class Ipmi(Device):
@@ -130,7 +131,7 @@ class Ipmi(Device):
 
     def run_cmd(self, cmd):
         full_cmd = f"{self.base_cmd} {cmd}"
-        value = subprocess.run(shlex.split(full_cmd), capture_output=True, timeout=5)
+        value = subprocess.run(shlex.split(full_cmd), capture_output=True, timeout=10)
         if value.returncode != 0:
             logger.error(f"{self._address} failed to run_cmd {full_cmd}")
             raise Exception
@@ -166,8 +167,10 @@ class Ipmi(Device):
         if self._fan_mode != self.FanMode.MANUAL:
             self.set_fan_mode(self.FanMode.MANUAL)
         pwm = hex(int(self._speed))
-        if self.run_cmd(f"raw 0x30 0x30 0x02 0xff {pwm}") != "\n":
-            raise Exception
+        if self._speed != pwm:
+            self._speed = pwm
+            if self.run_cmd(f"raw 0x30 0x30 0x02 0xff {self._speed}") != "\n":
+                raise Exception
 
 
 def test():
