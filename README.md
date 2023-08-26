@@ -11,7 +11,7 @@ GUI enabled Docker based fan controller. I appreciate all comments/feedback/bug 
 
 ## Features
 * Single container controls multiple machines at once.
-* Tempurature calculation takes into account CPUs, Drives and GPUs.
+* Temperature calculation takes into account CPUs, Drives and GPUs.
 * Full GUI configuration, no YAML or INI file editing required.
 * Allows monitoring of temperatures and fan speeds.
 
