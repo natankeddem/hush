@@ -74,8 +74,9 @@ class X10(X9):
         if self._fan_mode != self.Fan_Mode.FULL:
             self.set_fan_mode(self.Fan_Mode.FULL)
         pwm = hex(int(self._speed / (100 / 255)))
-        self.run_cmd(f"raw 0x30 0x70 0x66 0x01 0x10 {pwm}")
-        self.run_cmd(f"raw 0x30 0x70 0x66 0x01 0x11 {pwm}")
+        zones = ["00", "01"]
+        for zone in zones:
+            self.run_cmd(f"raw 0x30 0x70 0x66 0x01 0x{zone} {pwm}")
 
 
 class X11(X10):
