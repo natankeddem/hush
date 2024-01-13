@@ -69,14 +69,32 @@ class X9(Device):
 
 
 class X10(X9):
+    def __init__(self, address, username="ADMIN", password="ADMIN"):
+        super().__init__(address, username, password)
+        self.fru = None
+
     def set_speed(self, speed):
         self._speed = speed
         if self._fan_mode != self.Fan_Mode.FULL:
             self.set_fan_mode(self.Fan_Mode.FULL)
         pwm = hex(int(self._speed / (100 / 255)))
-        zones = ["00", "01"]
+        if "X10DRG" in self.board_part_number:
+            zones = ["00", "01", "02", "03"]
+        else:
+            zones = ["00", "01"]
         for zone in zones:
             self.run_cmd(f"raw 0x30 0x70 0x66 0x01 0x{zone} {pwm}")
+
+    @property
+    def board_part_number(self) -> str:
+        if self.fru is None:
+            fru = self.run_cmd("fru")
+            self.fru = {}
+            for name in fru.strip().split("\n"):
+                name = name.split(":")
+                self.fru.update({name[0].strip(): name[1].strip()})
+            logger.info(f"fru = {self.fru}")
+        return self.fru.get("Board Part Number", "")
 
 
 class X11(X10):
