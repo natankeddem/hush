@@ -6,7 +6,7 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - ~/path/to/data:/app/.nicegui
+      - ~/path/to/data:/app/data
       - ~/path/to/logs:/app/logs
     environment:
       - PUID=1000

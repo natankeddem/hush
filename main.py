@@ -1,52 +1,28 @@
-import os
-
-os.environ["MPLCONFIGDIR"] = os.getcwd() + "/mpl/"
 import mylogging
 import logging
 
 logger = logging.getLogger(__name__)
-from nicegui import app, ui
-from tabs.connections import Connections
-from tabs.sensors_ctrls import SensorsCtrls
-from tabs.algorithms import Algorithms
-from tabs.monitors import Monitors
-from tabs.debug import Debug
-import control
+import os
 
-ui.colors(primary="#424242", secondary="#323232", accent="#424242")
+if not os.path.exists("data"):
+    os.makedirs("data")
+os.environ.setdefault("NICEGUI_STORAGE_PATH", "data")
+from nicegui import ui  # type: ignore
 
+ui.card.default_style("max-width: none")
+ui.card.default_props("flat bordered")
+ui.input.default_props("outlined dense hide-bottom-space")
+ui.button.default_props("outline dense")
+ui.select.default_props("outlined dense dense-options")
+ui.checkbox.default_props("dense")
+ui.stepper.default_props("flat")
+ui.stepper.default_classes("full-size-stepper")
 
-@ui.page("/shutdown")
-def shutdown():
-    app.shutdown()
+from hush import page, logo, control
 
-
-with ui.column().classes("w-full items-center") as tab_header_col:
-    with ui.tabs().classes("w-full items-center") as tabs:
-        connections_tab = ui.tab("Connections")
-        sensors_ctrls_tab = ui.tab("Sensors & Ctrls")
-        algorithms_tab = ui.tab("Algorithms")
-        monitors_tab = ui.tab("Monitors")
-        if os.environ.get("DISPLAY_DEBUG_TAB", "FALSE") == "TRUE":
-            debug_tab = ui.tab("Debug")
-with ui.column().classes("w-full items-center") as tabs_content_col:
-    with ui.tab_panels(tabs, value=connections_tab, animated=False).classes("column items-center justify-center"):
-        with ui.tab_panel(connections_tab).style("min-height: 600px"):
-            connections = Connections()
-        with ui.tab_panel(sensors_ctrls_tab).style("min-height: 600px"):
-            sensors_ctrls = SensorsCtrls()
-        with ui.tab_panel(algorithms_tab).style("min-height: 600px"):
-            algorithms = Algorithms()
-        with ui.tab_panel(monitors_tab).style("min-height: 600px"):
-            monitors = Monitors()
-        if os.environ.get("DISPLAY_DEBUG_TAB", "FALSE") == "TRUE":
-            with ui.tab_panel(debug_tab).style("min-height: 600px"):
-                debug = Debug()
-
-app.on_connect(connections.handle_connection)
-if os.environ.get("DISPLAY_DEBUG_TAB", "FALSE") == "TRUE":
-    ui.timer(3, debug.update_log)
-launcher = control.Launcher(monitor_tab=monitors)
+launcher = control.Launcher()
 ui.timer(1, launcher.run)
-app.on_shutdown(launcher.close)
-ui.run(title="hush", favicon="🙉", reload=False, dark=True)
+
+if __name__ in {"__main__", "__mp_main__"}:
+    page.build()
+    ui.run(title="hush", favicon="🙉", dark=True, reload=False)
