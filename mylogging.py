@@ -6,6 +6,8 @@ lastdebug_path = "logs/lastdebug.log"
 info_path = "logs/info.log"
 warn_path = "logs/warning.log"
 
+if not os.path.exists("logs"):
+    os.makedirs("logs")
 try:
     os.remove(lastinfo_path)
 except OSError:

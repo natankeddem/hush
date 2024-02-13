@@ -1,0 +1,167 @@
+import logging
+
+logger = logging.getLogger(__name__)
+from typing import List
+import numpy as np
+from scipy.interpolate import interp1d
+import math
+from datetime import datetime as dt
+from datetime import timedelta
+from simple_pid import PID
+from hush import storage
+from hush.hardware.factory import Factory
+from hush.tabs.monitor import Status
+
+
+class Launcher:
+    def __init__(self) -> None:
+        self.times: dict = {}
+
+    async def run(self):
+        hosts = list(storage.hosts.keys())
+        for host in hosts:
+            delay = storage.host(host).get("delay", 30)
+            if host not in self.times:
+                elapsed_time = timedelta(seconds=delay)
+            else:
+                elapsed_time = dt.now() - self.times[host]
+            if delay is not None and delay > 0 and elapsed_time.seconds >= delay:
+                machine = Machine(host)
+                await machine.run()
+                self.times[host] = dt.now()
+
+
+class Machine:
+    def __init__(self, host) -> None:
+        self._host = host
+
+    async def run(self):
+        try:
+            await self._calc()
+        except Exception as e:
+            status = Status(host=self._host)
+            status.submit()
+            logger.error(f"Connection to {self._host} failed!")
+            logger.error(f"{self._host}'s config={storage.host(self._host)}!")
+            logger.exception(e)
+
+    async def _calc(self):
+        highest_speed = None
+        current_speed = None
+        final_speed = None
+        temperatures = {}
+        control = await Factory.driver(self._host, "speed")
+        for sensor in ["cpu", "drive", "gpu"]:
+            driver = await Factory.driver(self._host, sensor)
+            if driver is not None:
+                meas_temp = await driver.get_temp()
+                temperatures[sensor] = meas_temp
+                if storage.algo_sensor(self._host, sensor)["type"] == "pid":
+                    pid = Pid(self._host, sensor)
+                    speed = round(-1 * pid.controller(meas_temp))
+                    logger.debug(f"{control.hostname} Temperature={meas_temp} Speed={speed}")
+                else:
+                    curve = Curve(self._host, sensor)
+                    speed = curve.calc(meas_temp)
+                    logger.debug(f"{control.hostname} Temperature={meas_temp} Speed={speed} Speeds={curve.speeds}")
+                if speed is not None:
+                    if isinstance(speed, str) is True:
+                        current_speed = curve.speeds.index(speed)
+                    else:
+                        current_speed = speed
+                    if highest_speed is None or current_speed > highest_speed:
+                        highest_speed = current_speed
+                        if isinstance(speed, str) is True:
+                            final_speed = curve.speeds[highest_speed]
+                        else:
+                            final_speed = highest_speed
+        if final_speed is not None:
+            logger.info(f"{control.hostname} Temperature={meas_temp} -> Fan Speed={final_speed}")
+            await control.set_speed(final_speed)
+            status = Status(
+                host=self._host,
+                status=True,
+                speed=highest_speed,
+                temperatures=temperatures,
+            )
+            status.submit()
+        else:
+            status = Status(host=self._host)
+            status.submit()
+
+
+class Curve:
+    def __init__(self, host: str, sensor: str):
+        self._speeds = list(storage.curve_speed(host, sensor).values())
+        self._temps = list(storage.curve_temp(host, sensor).values())
+
+    def calc(self, temp):
+        value = None
+        if isinstance(self._speeds, List) is True and isinstance(self._temps, List) is True and len(self._speeds) == len(self._temps):
+            if isinstance(self._speeds[0], int) is True:
+                value = self.temp2pwm(temp)
+            else:
+                value = self.temp2value(temp)
+        return value
+
+    def temp2value(self, temp):
+        set_value = None
+        temp_count = len(self._temps)
+        value_count = len(self._speeds)
+        if temp_count < 2 or value_count < 2:
+            set_value = self._speeds[0]
+        if temp <= self._temps[0]:
+            set_value = self._speeds[0]
+        elif temp > self._temps[-1]:
+            set_value = self._speeds[-1]
+        else:
+            for s, t in zip(self._speeds, self._temps):
+                if temp > t:
+                    set_value = s
+                logger.info(f"temp={t} speed={s} set_value={set_value}")
+        return set_value
+
+    def temp2pwm(self, temp):
+        temps = self._temps
+        temps.insert(0, 1)
+        temps.append(120)
+        pwms = self._speeds
+        pwms.insert(0, self._speeds[0])
+        pwms.append(self._speeds[-1])
+        pwm_interp = interp1d(temps, pwms)
+        temp_range = np.arange(min(temps), max(temps), 1)
+        pwm = math.ceil(pwm_interp(temp_range)[temp - 1])
+        return pwm
+
+    @property
+    def speeds(self):
+        return self._speeds
+
+    @property
+    def temps(self):
+        return self._temps
+
+
+class Pid:
+    pids: dict = {}
+
+    def __init__(self, host: str, sensor: str):
+        self.host = host
+        self.sensor = sensor
+        self._controller = self.controller
+
+    @property
+    def controller(self) -> PID:
+        if self.host not in self.pids:
+            self.pids[self.host] = {}
+        if self.sensor not in self.pids[self.host]:
+            self.pids[self.host][self.sensor] = {}
+        if self.pids[self.host][self.sensor] != storage.pid(self.host, self.sensor):
+            self.pids[self.host][self.sensor] = storage.pid(self.host, self.sensor)
+            self._controller = PID(
+                self.pids[self.host][self.sensor]["Kp"],
+                self.pids[self.host][self.sensor]["Ki"],
+                self.pids[self.host][self.sensor]["Kd"],
+                self.pids[self.host][self.sensor]["Target"],
+            )
+        return self._controller

@@ -1,16 +1,12 @@
-from . import *
+import logging
 
 logger = logging.getLogger(__name__)
+from typing import Optional
 from enum import IntEnum
-import subprocess
-import shlex
-import requests
 import json
 import re
-from requests.packages import urllib3
 import numpy as np
-
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from . import Device
 
 # https://www.dell.com/support/manuals/en-us/idrac9-lifecycle-controller-v6.x-series/idrac9_6.xx_racadm_pub/introduction
 # https://dl.dell.com/content/manual35024470-integrated-dell-remote-access-controller-9-racadm-cli-guide.pdf?language=en-us
@@ -28,42 +24,23 @@ class Redfish(Device):
         HIGH = 3
         MAX = 4
 
-    def __init__(self, address, username="root", password="calvin"):
-        super().__init__(address=address, password=password, username=username)
-        self.base_path = f"https://{self._address}/redfish/v1/"
+    def __init__(self, host: str) -> None:
+        super().__init__(host)
+        self.get_oob_credentials()
+        self.json_request.base_path = f"https://{self.hostname}/redfish/v1/"
 
-    def close(self):
-        pass
-
-    def redfish_cmd(self, path, payload=None):
-        if payload is None:
-            response = requests.get(
-                f"{self.base_path}{path}",
-                verify=False,
-                auth=(self._username, self._password),
-            )
-        else:
-            json_payload = json.dumps(payload)
-            headers = {"content-type": "application/json"}
-            response = requests.patch(
-                f"{self.base_path}{path}",
-                data=json_payload,
-                headers=headers,
-                verify=False,
-                auth=(self._username, self._password),
-            )
-        return json.loads(response.content)
-
-    def get_temp(self, core=None):
+    async def get_temp(self, core=None):
         cpu_temps = list()
+        response = None
         try:
-            sensors = str(self.redfish_cmd(path="Chassis/System.Embedded.1/Sensors"))
-            sensor_paths = re.findall(r"Chassis\/System.Embedded.1\/Sensors\/CPU\dTemp", sensors)
+            response = await self.json_request.get(path="Chassis/System.Embedded.1/Sensors")
+            sensor_paths = re.findall(r"Chassis\/System.Embedded.1\/Sensors\/CPU\dTemp", str(response))
             for sensor_path in sensor_paths:
-                sensor_data = self.redfish_cmd(path=f"{sensor_path}")
-                cpu_temps.append(float(sensor_data["Reading"]))
+                response = await self.json_request.get(path=f"{sensor_path}")
+                cpu_temps.append(float(response["Reading"]))
         except Exception as e:
-            logger.error(f"{self._address} failed to get cpu temperature from: {sensor_data}")
+            if response is not None:
+                logger.error(f"{self.hostname} failed to get cpu temperature from: {response}")
             raise e
         if core is None:
             self._temp = int(np.mean(cpu_temps))
@@ -71,7 +48,8 @@ class Redfish(Device):
             self._temp = cpu_temps[core]
         return self._temp
 
-    def set_speed(self, speed):
+    async def set_speed(self, speed):
+        response = None
         if isinstance(speed, str) is True:
             offsets = {
                 "Off": self.Fan_Offset.OFF,
@@ -103,16 +81,17 @@ class Redfish(Device):
         }
         if self._speed != offsets[offset]:
             self._speed = offsets[offset]
-            output = self.redfish_cmd(
+            response = await self.json_request.patch(
                 path="Managers/System.Embedded.1/Attributes",
                 payload={"Attributes": {"ThermalSettings.1.FanSpeedOffset": self._speed}},
             )
-            output = json.dumps(output)
+            output = json.dumps(response)
             try:
                 output.index("The request completed successfully.")
                 output.index("The operation successfully completed.")
             except Exception as e:
-                logger.error(f"{self._address} failed to set offset; cmd response: {output}")
+                if response is not None:
+                    logger.error(f"{self.hostname} failed to get cpu temperature from: {response}")
                 raise e
 
 
@@ -121,34 +100,27 @@ class Ipmi(Device):
         MANUAL = 0
         IDRAC = 1
 
-    def __init__(self, address, username="root", password="calvin"):
-        super().__init__(address=address, password=password, username=username)
-        self.base_cmd = f"ipmitool -I lanplus -H {self._address} -U {self._username} -P {self._password}"
-        self._fan_mode = None
+    def __init__(self, host: str) -> None:
+        super().__init__(host)
+        self.get_oob_credentials()
+        self._fan_mode = self.FanMode.IDRAC
 
-    def close(self):
-        self.set_fan_mode(self.FanMode.IDRAC)
+    async def close(self) -> None:
+        await self.set_fan_mode(self.FanMode.IDRAC)
 
-    def run_cmd(self, cmd):
-        full_cmd = f"{self.base_cmd} {cmd}"
-        value = subprocess.run(shlex.split(full_cmd), capture_output=True, timeout=10)
-        if value.returncode != 0:
-            logger.error(f"{self._address} failed to run_cmd {full_cmd}")
-            raise Exception
-        value = value.stdout.decode("utf-8")
-        return value
-
-    def set_fan_mode(self, mode):
-        if self.run_cmd(f"raw 0x30 0x30 0x01 0x0{int(mode)}") != "\n":
+    async def set_fan_mode(self, mode: FanMode) -> None:
+        result = await self.ipmi.execute(f"raw 0x30 0x30 0x01 0x0{int(mode)}")
+        if result.stdout != "\n":
             raise Exception
         else:
             self._fan_mode = mode
 
-    def get_temp(self, core=None):
+    async def get_temp(self, core=None):
         cpu_temps = list()
+        response = None
         try:
-            output = self.run_cmd("-c sdr")
-            data_lines = output.splitlines()
+            response = await self.ipmi.execute("-c sdr")
+            data_lines = response.stdout_lines
             for data in data_lines:
                 data = data.split(",")
                 if data[0] == "Temp" and data[1] != "":
@@ -159,33 +131,17 @@ class Ipmi(Device):
                 self._temp = cpu_temps[core]
             return self._temp
         except Exception as e:
-            logger.error(f"{self._address} failed to get cpu temperature from: {output}")
+            if response is not None:
+                logger.error(f"{self.hostname} failed to get cpu temperature from: {response}")
             raise e
 
-    def set_speed(self, speed):
+    async def set_speed(self, speed: int) -> None:
         self._speed = speed
         if self._fan_mode != self.FanMode.MANUAL:
-            self.set_fan_mode(self.FanMode.MANUAL)
+            await self.set_fan_mode(self.FanMode.MANUAL)
         pwm = hex(int(self._speed))
         if self._speed != pwm:
             self._speed = pwm
-            if self.run_cmd(f"raw 0x30 0x30 0x02 0xff {self._speed}") != "\n":
+            result = await self.ipmi.execute(f"raw 0x30 0x30 0x02 0xff {self._speed}")
+            if result.stdout != "\n":
                 raise Exception
-
-
-def test():
-    # i = Ipmi("10.1.1.204", password=my_secret_password)
-    # print(i.get_temp())
-    # i.set_speed(20)
-    # i.close()
-
-    r = Redfish("10.1.7.180", password=my_secret_password)
-    print(r.get_temp())
-    r.set_speed(r.Fan_Offset.OFF)
-    r.set_speed("Low")
-    r.set_speed(74)
-    r.close()
-
-
-if __name__ == "__main__":
-    test()

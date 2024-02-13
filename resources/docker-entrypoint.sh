@@ -22,6 +22,8 @@ mkdir -p /app/mpl
 # Make user the owner of the app directory.
 chown -R appuser:appgroup /app
 # Copy the default .bashrc file to the appuser home directory.
+mkdir -p /home/appuser/.ssh
+chown appuser:appgroup /home/appuser/.ssh
 cp /etc/skel/.bashrc /home/appuser/.bashrc
 chown appuser:appgroup /home/appuser/.bashrc
 export HOME=/home/appuser
@@ -35,6 +37,7 @@ fi
 if [ -d "/usr/local/share/fonts" ]; then
   chmod -R 777 /usr/local/share/fonts
 fi
+
 # Switch to appuser and execute the Docker CMD or passed in command-line arguments.
 # Using setpriv let's it run as PID 1 which is required for proper signal handling (similar to gosu/su-exec).
 exec setpriv --reuid=$PUID --regid=$PGID --init-groups $@
