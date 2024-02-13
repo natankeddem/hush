@@ -47,7 +47,7 @@ class Xml(Http):
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
                 self.base_path,
-                data=json.loads(data),
+                content=data,
                 timeout=timeout,
                 follow_redirects=True,
             )
