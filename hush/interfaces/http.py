@@ -33,7 +33,7 @@ class Json(Http):
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.patch(
                 self.base_path + path,
-                data=payload,
+                json=payload,
                 headers={"content-type": "application/json"},
                 auth=(self.username, self.password),
                 timeout=timeout,
