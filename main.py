@@ -25,4 +25,4 @@ ui.timer(1, launcher.run)
 
 if __name__ in {"__main__", "__mp_main__"}:
     page.build()
-    ui.run(title="hush", favicon="🙉", dark=True, reload=False)
+    ui.run(title="hush", favicon="🙊", dark=True, reload=False)
