@@ -5,8 +5,10 @@ logger = logging.getLogger(__name__)
 import os
 
 if not os.path.exists("data"):
+    logger.warning("Could not find 'data' directory, verify bind mounts. Attempting to create 'data' directory.")
     os.makedirs("data")
 os.environ.setdefault("NICEGUI_STORAGE_PATH", "data")
+
 from nicegui import ui  # type: ignore
 
 ui.card.default_style("max-width: none")
