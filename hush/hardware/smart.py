@@ -29,10 +29,10 @@ class Smart(Device):
             if temp is not None and temp.lastindex == 1:
                 return float(temp.group(1))
             else:
-                logger.info(f"{self.address} failed to get drive temperature {drive_path}:")
+                logger.info(f"{self.hostname} failed to get drive temperature {drive_path}:")
                 logger.info(f"result = {result}")
         except Exception as e:
-            logger.info(f"{self.address} failed to get drive temperature {drive_path}:")
+            logger.info(f"{self.hostname} failed to get drive temperature {drive_path}:")
             logger.info(f"result = {result}")
             raise e
 
