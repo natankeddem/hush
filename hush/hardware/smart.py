@@ -25,7 +25,7 @@ class Smart(Device):
     async def get_drive_temp(self, drive_path):
         try:
             result = await self.ssh.execute(f'smartctl -x {drive_path} | grep -E "Temp|Cel|Cur|temp|cel|cur"')
-            temp = re.search(r"Current\s*[^T]*Temperature:\s*(\d+)", result.stdout)
+            temp = re.search(r"Current\s+Temperature:\s*(\d+)", result.stdout)
             if temp is not None and temp.lastindex == 1:
                 return float(temp.group(1))
             else:
