@@ -5,7 +5,7 @@ import numpy as np
 from . import Device
 
 
-class Nvidia(Device):
+class Gpu(Device):
     def __init__(self, host: str) -> None:
         super().__init__(host)
         self.get_os_credentials()
