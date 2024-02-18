@@ -91,3 +91,22 @@ class X10(X9):
 
 class X11(X10):
     pass
+
+
+class Gpu(X9):
+    async def get_temp(self):
+        gpu_temps = list()
+        try:
+            result = await self.ipmi.execute("-c sdr")
+            sensors = ["GPU Temp", "GPU1 Temp", "GPU2 Temp", "GPU3 Temp", "GPU4 Temp", "GPU5 Temp", "GPU6 Temp"]
+            for sensor in sensors:
+                for line in result.stdout_lines:
+                    if sensor in line:
+                        data = line.split(",")
+                        if data[0] == sensor and data[1] != "":
+                            gpu_temps.append(float(data[1]))
+            self._temp = int(np.mean(gpu_temps))
+            return self._temp
+        except Exception as e:
+            logger.error(f"{self.hostname} failed to get gpu temperature from: {result}")
+            raise e

@@ -37,7 +37,7 @@ speed_ctrl_names = [
     "Cisco M5",
 ]
 drive_sensor_names = ["None", "SMART"]
-gpu_sensor_names = ["None", "Nvidia"]
+gpu_sensor_names = ["None", "Nvidia", "Supermicro"]
 
 
 class Configure(Tab):

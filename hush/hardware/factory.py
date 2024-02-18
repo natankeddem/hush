@@ -86,6 +86,8 @@ class Factory:
             if group == "gpu":
                 if name == "Nvidia":
                     cls.drivers[host][group]["instance"] = nvidia.Gpu(host)
+                if name == "Supermicro":
+                    cls.drivers[host][group]["instance"] = supermicro.Gpu(host)
                 else:
                     cls.drivers[host][group]["instance"] = None
         return cls.drivers[host][group]["instance"]
