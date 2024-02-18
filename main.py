@@ -5,8 +5,15 @@ logger = logging.getLogger(__name__)
 import os
 
 if not os.path.exists("data"):
-    logger.warning("Could not find 'data' directory, verify bind mounts. Attempting to create 'data' directory.")
-    os.makedirs("data")
+    logger.warning("Could not find 'data' directory, verify bind mounts.")
+    if os.path.exists(".nicegui"):
+        logger.warning("Creating 'data' directory symlink.")
+        os.symlink(".nicegui", "data", target_is_directory=True)
+    else:
+        logger.warning("Creating 'data' directory, settings will not be persistent.")
+        os.makedirs("data")
+else:
+    logger.warning("Found 'data' directory.")
 os.environ.setdefault("NICEGUI_STORAGE_PATH", "data")
 
 from nicegui import ui  # type: ignore

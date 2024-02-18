@@ -1,6 +1,7 @@
 .git/
 .vscode/
 .nicegui/
+data/
 venv/
 __pycache__/
 logs/
