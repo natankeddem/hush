@@ -149,7 +149,7 @@ class Drawer(object):
                 if os_password_input.value is None:
                     storage.host(host)["os"]["password"] = None
                 else:
-                    storage.host(host)["os"]["password"] = None if os_password_input.value.strip() is "" else os_password_input.value.strip()
+                    storage.host(host)["os"]["password"] = None if os_password_input.value.strip() == "" else os_password_input.value.strip()
                 ssh.Ssh(host, hostname=os_hostname_input.value, username=os_username_input.value)
                 ssh.Ssh(f"{host }_oob", hostname=oob_hostname_input.value, username=oob_username_input.value)
                 self._add_host_to_table(host)
