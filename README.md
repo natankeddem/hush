@@ -1,5 +1,8 @@
 # hush
 
+## Demo
+[hush_demo.webm](https://github.com/natankeddem/hush/assets/44515217/6f34e5c4-81a8-4d7e-b5d3-d4ec05c41975)
+
 ## ***WARNING***
 
 **Improper setup or bugs in this software may overheat your system!**
