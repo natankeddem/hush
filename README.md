@@ -1,7 +1,7 @@
 # hush
 
 ## Demo
-[hush_demo.webm](https://github.com/natankeddem/hush/assets/44515217/6f34e5c4-81a8-4d7e-b5d3-d4ec05c41975)
+[hush_demo.webm](https://github.com/natankeddem/hush/assets/44515217/f7545b98-657a-4771-83d3-54ef61e985b1)
 
 ## ***WARNING***
 
