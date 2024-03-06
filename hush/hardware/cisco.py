@@ -83,6 +83,8 @@ class M3(Device):
             data = f"<configResolveClass cookie='{cookie}' inHierarchical='false' classId='processorEnvStats'></configResolveClass>"
             response = await self.xml_request.post(data)
             cpus = response["configResolveClass"]["outConfigs"]["processorEnvStats"]
+            if not isinstance(cpus, list):
+                cpus = [cpus]
             cpu_temps = []
             for cpu in cpus:
                 cpu_temps.append(float(cpu["@temperature"]))
