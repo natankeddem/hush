@@ -49,6 +49,5 @@ class Xml(Http):
                 self.base_path,
                 content=data,
                 timeout=timeout,
-                follow_redirects=True,
             )
             return xmltodict.parse(response.text)
