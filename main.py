@@ -34,6 +34,6 @@ if __name__ in {"__main__", "__mp_main__"}:
     launcher = control.Launcher()
     ui.timer(1, launcher.run)
 
-if __name__ in {"__main__", "__mp_main__"}:
+    app.on_startup(lambda: print(f"Starting hush, bound to the following addresses {', '.join(app.urls)}.", flush=True))
     page.build()
-    ui.run(title="hush", favicon="🙊", dark=True, reload=False)
+    ui.run(title="hush", favicon="🙊", dark=True, reload=False, show=False, show_welcome_message=False)
