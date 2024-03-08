@@ -43,11 +43,13 @@ class Json(Http):
 
 
 class Xml(Http):
-    async def post(self, data: str, timeout: int = 10) -> Dict[str, Any]:
+    async def post(self, data: str, timeout: int = 20) -> Dict[str, Any]:
+        logger.info(f"XML Post -> {data}")
         async with httpx.AsyncClient(verify=False) as client:
             response = await client.post(
                 self.base_path,
                 content=data,
                 timeout=timeout,
             )
+            logger.info(f"XML Post <- {response.text}")
             return xmltodict.parse(response.text)
