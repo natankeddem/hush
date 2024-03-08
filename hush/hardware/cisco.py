@@ -69,8 +69,8 @@ class M3(Device):
         data = f"<configConfMo cookie='{cookie}' inHierarchical='false' dn='sys/rack-unit-1/board/fan-policy'><inConfig><fanPolicy configuredFanPolicy='{policys[policy]}' dn='sys/rack-unit-1/board/fan-policy'></fanPolicy></inConfig></configConfMo>"
         try:
             response = await self.xml_request.post(data)
-            status = response["configConfMo"]["outConfig"]["fanPolicy"]["@configurationStatus"]
-            if status != "SUCCESS":
+            status = response["configConfMo"]["@response"]
+            if status != "yes":
                 raise Exception
         except Exception as e:
             logger.error(f"{self.hostname} failed to set fan policy")
