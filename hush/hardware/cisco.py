@@ -36,11 +36,11 @@ class M3(Device):
         self._speed = speed
         if isinstance(speed, str):
             policy_map = {
-                "LowPower": self.FanPolicy.LOWPOWER,
+                "Low Power": self.FanPolicy.LOWPOWER,
                 "Balanced": self.FanPolicy.BALANCED,
                 "Performance": self.FanPolicy.PERFORMANCE,
-                "HighPower": self.FanPolicy.HIGHPOWER,
-                "MaxPower": self.FanPolicy.MAXIMUMPOWER,
+                "High Power": self.FanPolicy.HIGHPOWER,
+                "Max Power": self.FanPolicy.MAXIMUMPOWER,
             }
             policy = policy_map[speed]
         elif isinstance(speed, M3.FanPolicy):
