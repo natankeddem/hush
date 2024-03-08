@@ -77,7 +77,7 @@ class M3(Device):
             logger.error(f"response = {response}")
             raise e
 
-    async def get_temp(self, core: Optional[int] = None) -> None:
+    async def get_temp(self, core: Optional[int] = None) -> int:
         try:
             cookie = await self.cookie()
             data = f"<configResolveClass cookie='{cookie}' inHierarchical='false' classId='processorEnvStats'></configResolveClass>"
@@ -92,6 +92,7 @@ class M3(Device):
                 self._temp = int(np.mean(cpu_temps))
             else:
                 self._temp = int(cpu_temps[core])
+            return self._temp
         except Exception as e:
             logger.error(f"{self.hostname} failed to get cpu temp")
             logger.error(f"response = {response}")
