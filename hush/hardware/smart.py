@@ -14,7 +14,7 @@ class Smart(Device):
     async def get_drive_list(self):
         drive_paths = list()
         try:
-            result = await self.ssh.execute("fdisk -l")
+            result = await self.ssh.shell("fdisk -l")
             drive_paths = re.findall(r"Disk (\/dev\/sd[a-z]+|\/dev\/nvm[0-9]+n[0-9]+)", result.stdout)
         except Exception as e:
             logger.info(f"{self} failed to get drive list:")
@@ -24,7 +24,7 @@ class Smart(Device):
 
     async def get_drive_temp(self, drive_path):
         try:
-            result = await self.ssh.execute(f'smartctl -x {drive_path} | grep -E "Temp|Cel|Cur|temp|cel|cur"')
+            result = await self.ssh.shell(f'smartctl -x {drive_path} | grep -E "Temp|Cel|Cur|temp|cel|cur"')
             temp = re.search(r"Current(?:\sDrive)?\sTemperature:\s*(\d+)", result.stdout)
             if temp is not None and temp.lastindex == 1:
                 return float(temp.group(1))
