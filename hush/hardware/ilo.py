@@ -41,7 +41,7 @@ class iLO4(Device):
             await self.get_fan_count()
         pwm = int((self._speed / 100) * 255)
         for fan in range(self._fan_count):
-            await self.ssh.execute(f"fan p {fan} lock {pwm}")
+            await self.ssh.shell(f"fan p {fan} lock {pwm}")
 
     @property
     def ssh(self) -> ssh.Ssh:

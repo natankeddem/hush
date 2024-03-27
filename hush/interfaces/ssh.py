@@ -65,7 +65,7 @@ class Ssh(cli.Cli):
                     if line == "" or line.startswith("#"):
                         continue
                     if line.startswith("Host "):
-                        current_host = line.split(" ")[1].strip()
+                        current_host = line.split(" ", 1)[1].strip().replace('"', "")
                         self._config[current_host] = {}
                     else:
                         key, value = line.split(" ", 1)
@@ -76,7 +76,7 @@ class Ssh(cli.Cli):
     def write_config(self) -> None:
         with open(self._config_path, "w", encoding="utf-8") as f:
             for host, config in self._config.items():
-                f.write(f"Host {host}\n")
+                f.write(f"""Host "{host}"\n""")
                 for key, value in config.items():
                     f.write(f"    {key} {value}\n")
                 f.write("\n")
@@ -101,13 +101,11 @@ class Ssh(cli.Cli):
         self.write_config()
 
     async def execute(self, command: str, max_output_lines: int = 0) -> cli.Result:
-        self._base_command = f"{'' if self.use_key else f'sshpass -p {self.password} '} ssh -F {self._config_path} {self.host}"
-        self._full_command = f"{self._base_command} {command}"
+        self._full_command = f"{self.base_command} {command}"
         return await super().execute(self._full_command, max_output_lines)
 
     async def shell(self, command: str, max_output_lines: int = 0) -> cli.Result:
-        self._base_command = f"{'' if self.use_key else f'sshpass -p {self.password} '} ssh -F {self._config_path} {self.host}"
-        self._full_command = f"{self._base_command} {command}"
+        self._full_command = f"{self.base_command} {command}"
         return await super().shell(self._full_command, max_output_lines)
 
     async def send_key(self) -> cli.Result:
@@ -118,3 +116,8 @@ class Ssh(cli.Cli):
     @property
     def config_path(self):
         return self._config_path
+
+    @property
+    def base_command(self):
+        self._base_command = f'{"" if self.use_key else f"sshpass -p {self.password} "} ssh -F {self._config_path} "{self.host}"'
+        return self._base_command

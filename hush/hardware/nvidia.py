@@ -12,7 +12,7 @@ class Gpu(Device):
 
     async def get_temp(self):
         try:
-            result = await self.ssh.execute(f"nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader")
+            result = await self.ssh.shell(f"nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader")
             temperatures = []
             for temperature in result.stdout_lines:
                 temperatures.append(float(temperature.strip()))
