@@ -40,7 +40,7 @@ class Ssh(cli.Cli):
         super().__init__(seperator=seperator)
         self._raw_path: str = path
         self._path: Path = Path(path).resolve()
-        self.host: str = host
+        self.host: str = host.replace(" ", "")
         self.password: Union[str, None] = password
         self.use_key: bool = False
         if password is None:
@@ -52,8 +52,8 @@ class Ssh(cli.Cli):
         self._config_path: str = f"{self._path}/config"
         self._config: Dict[str, Dict[str, str]] = {}
         self.read_config()
-        self.hostname: str = hostname or self._config.get(host, {}).get("HostName", "")
-        self.username: str = username or self._config.get(host, {}).get("User", "")
+        self.hostname: str = hostname or self._config.get(host.replace(" ", ""), {}).get("HostName", "")
+        self.username: str = username or self._config.get(host.replace(" ", ""), {}).get("User", "")
         self.set_config()
 
     def read_config(self) -> None:
@@ -76,7 +76,7 @@ class Ssh(cli.Cli):
     def write_config(self) -> None:
         with open(self._config_path, "w", encoding="utf-8") as f:
             for host, config in self._config.items():
-                f.write(f"""Host "{host}"\n""")
+                f.write(f"Host {host}\n")
                 for key, value in config.items():
                     f.write(f"    {key} {value}\n")
                 f.write("\n")
@@ -119,5 +119,5 @@ class Ssh(cli.Cli):
 
     @property
     def base_command(self):
-        self._base_command = f'{"" if self.use_key else f"sshpass -p {self.password} "} ssh -F {self._config_path} "{self.host}"'
+        self._base_command = f'{"" if self.use_key else f"sshpass -p {self.password} "} ssh -F {self._config_path} {self.host}'
         return self._base_command
