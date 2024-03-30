@@ -1,3 +1,4 @@
+from typing import Optional
 from nicegui import ui  # type: ignore
 from hush import elements as el
 from hush import storage
@@ -104,18 +105,29 @@ class Drawer(object):
                     for host in list(storage.hosts.keys()):
                         all_hosts.append(host.replace(" ", ""))
                     if name != "":
-                        all_hosts.remove(name)
-                    host_input = el.HInput(label="Host", value=" ", invalid_characters="""'`"$\;&<>|(){}""", invalid_values=all_hosts)
+                        if name in all_hosts:
+                            all_hosts.remove(name)
+                        if name.replace(" ", "") in all_hosts:
+                            all_hosts.remove(name.replace(" ", ""))
+
+                    def host_check(value: str) -> Optional[bool]:
+                        spaceless = value.replace(" ", "")
+                        for invalid_value in all_hosts:
+                            if invalid_value == spaceless:
+                                return False
+                        return None
+
+                    host_input = el.VInput(label="Host", value=" ", invalid_characters="""'`"$\;&<>|(){}""", invalid_values=all_hosts, check=host_check)
                     with ui.tabs().classes("w-full") as tabs:
                         oob = ui.tab("OOB")
                         os = ui.tab("OS")
                     with ui.tab_panels(tabs, value=oob).classes("w-full"):
                         with ui.tab_panel(oob):
-                            oob_hostname_input = el.HInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\/:;<>|(){}-_=+[],?~""")
+                            oob_hostname_input = el.VInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\/:;<>|(){}-_=+[],?~""")
                             oob_username_input = el.DInput(label="Username", value=" ")
                             oob_password_input = el.DInput(label="Password", value=" ").props("type=password")
                         with ui.tab_panel(os):
-                            os_hostname_input = el.HInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\/:;<>|(){}-_=+[],?~""")
+                            os_hostname_input = el.VInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\/:;<>|(){}-_=+[],?~""")
                             os_username_input = el.DInput(label="Username", value=" ")
                             with el.Card() as c:
                                 c.tailwind.width("full")

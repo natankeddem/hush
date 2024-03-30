@@ -131,7 +131,7 @@ class DInput(ui.input):
             self.value = ""
 
 
-class HInput(ui.input):
+class VInput(ui.input):
     def __init__(
         self,
         label: str | None = None,
@@ -144,9 +144,11 @@ class HInput(ui.input):
         autocomplete: List[str] | None = None,
         invalid_characters: str = "",
         invalid_values: List[str] = [],
+        max_length: int = 32,
+        check: Callable[..., Any] | None = None,
     ) -> None:
-        def test(value) -> bool:
-            if value is None or value == "":
+        def checks(value: str) -> bool:
+            if value is None or value == "" or len(value) > max_length:
                 return False
             for invalid_character in invalid_characters:
                 if invalid_character in value:
@@ -154,6 +156,10 @@ class HInput(ui.input):
             for invalid_value in invalid_values:
                 if invalid_value == value:
                     return False
+            if check is not None:
+                check_status = check(value)
+                if check_status is not None:
+                    return check_status
             return True
 
         super().__init__(
@@ -164,7 +170,7 @@ class HInput(ui.input):
             password_toggle_button=password_toggle_button,
             on_change=on_change,
             autocomplete=autocomplete,
-            validation={"": lambda value: test(value)},
+            validation={"": lambda value: checks(value)},
         )
         self.tailwind.width("full")
         if value == " ":
