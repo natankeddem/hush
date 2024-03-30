@@ -15,8 +15,9 @@ class iLO4(Device):
         self._fan_count = None
 
     async def close(self):
-        for fan in range(self._fan_count):
-            await self.ssh.execute(f"fan p {fan} unlock")
+        if self._fan_count is not None and self._fan_count > 0:
+            for fan in range(self._fan_count):
+                await self.ssh.shell(f"fan p {fan} unlock")
 
     async def get_fan_count(self):
         response = await self.json_request.get("chassis/1/Thermal")
