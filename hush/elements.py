@@ -131,6 +131,46 @@ class DInput(ui.input):
             self.value = ""
 
 
+class HInput(ui.input):
+    def __init__(
+        self,
+        label: str | None = None,
+        *,
+        placeholder: str | None = None,
+        value: str = " ",
+        password: bool = False,
+        password_toggle_button: bool = False,
+        on_change: Callable[..., Any] | None = None,
+        autocomplete: List[str] | None = None,
+        invalid_characters: str = "",
+        invalid_values: List[str] = [],
+    ) -> None:
+        def test(value) -> bool:
+            if value is None or value == "":
+                return False
+            for invalid_character in invalid_characters:
+                if invalid_character in value:
+                    return False
+            for invalid_value in invalid_values:
+                if invalid_value == value:
+                    return False
+            return True
+
+        super().__init__(
+            label,
+            placeholder=placeholder,
+            value=value,
+            password=password,
+            password_toggle_button=password_toggle_button,
+            on_change=on_change,
+            autocomplete=autocomplete,
+            validation={"": lambda value: test(value)},
+        )
+        self.tailwind.width("full")
+        if value == " ":
+            self.value = ""
+
+
 class FInput(ui.input):
     def __init__(
         self,

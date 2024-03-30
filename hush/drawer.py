@@ -100,29 +100,36 @@ class Drawer(object):
         with ui.dialog() as host_dialog, el.Card():
             with el.DBody(height="[95vh]", width="[360px]"):
                 with el.WColumn():
-                    host_input = el.DInput(label="Host", value=" ")
+                    all_hosts = list(storage.hosts.keys())
+                    for host in list(storage.hosts.keys()):
+                        all_hosts.append(host.replace(" ", ""))
+                    if name != "":
+                        all_hosts.remove(name)
+                    host_input = el.HInput(label="Host", value=" ", invalid_characters="""'`"$\;&<>|(){}""", invalid_values=all_hosts)
                     with ui.tabs().classes("w-full") as tabs:
                         oob = ui.tab("OOB")
                         os = ui.tab("OS")
                     with ui.tab_panels(tabs, value=oob).classes("w-full"):
                         with ui.tab_panel(oob):
-                            oob_hostname_input = el.DInput(label="Hostname", value=" ")
+                            oob_hostname_input = el.HInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\/:;<>|(){}-_=+[],?~""")
                             oob_username_input = el.DInput(label="Username", value=" ")
                             oob_password_input = el.DInput(label="Password", value=" ").props("type=password")
                         with ui.tab_panel(os):
-                            os_hostname_input = el.DInput(label="Hostname", value=" ")
+                            os_hostname_input = el.HInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\/:;<>|(){}-_=+[],?~""")
                             os_username_input = el.DInput(label="Username", value=" ")
                             with el.Card() as c:
                                 c.tailwind.width("full")
                                 os_password_input = el.DInput(label="Password", value=" ").props("type=password")
-                                el.DButton("SEND KEY", on_click=send_key).tailwind.width("full")
+                                send_ea = el.ErrorAggregator(host_input, os_hostname_input, os_username_input, os_password_input)
+                                el.DButton("SEND KEY", on_click=send_key).bind_enabled_from(send_ea, "no_errors").tailwind.width("full")
                             with el.Card() as c:
                                 c.tailwind.width("full")
                                 with ui.scroll_area() as s:
                                     s.tailwind.height("[100px]")
                                     public_key = await ssh.get_public_key("data")
                                     ui.label(public_key).classes("text-secondary break-all")
-                el.DButton("SAVE", on_click=lambda: host_dialog.submit("save")).bind_enabled_from(host_input, "valid")
+                save_ea = el.ErrorAggregator(host_input)
+                el.DButton("SAVE", on_click=lambda: host_dialog.submit("save")).bind_enabled_from(save_ea, "no_errors")
             host_input.value = name
             if name != "":
                 s = ssh.Ssh(name)
