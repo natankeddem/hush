@@ -1,6 +1,7 @@
 from nicegui import ui  # type: ignore
 from hush import elements as el
 from hush import storage
+from hush.hardware import factory
 from hush.interfaces import ssh
 from hush.tabs import Tab
 
@@ -153,6 +154,7 @@ class Drawer(object):
                 ssh.Ssh(host, hostname=os_hostname_input.value, username=os_username_input.value)
                 ssh.Ssh(f"{host }_oob", hostname=oob_hostname_input.value, username=oob_username_input.value)
                 self._add_host_to_table(host)
+                await factory.Factory.remove_host(name)
 
     def _modify_host(self, mode):
         self._hide_content()

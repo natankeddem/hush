@@ -16,6 +16,20 @@ class Factory:
     drivers: dict = {}
 
     @classmethod
+    async def remove_host(cls, host: str) -> None:
+        if host in cls.drivers:
+            groups = list(cls.drivers[host].keys())
+            for group in groups:
+                await cls.close(host, group)
+            del cls.drivers[host]
+
+    @classmethod
+    def add_group(cls, host: str, group: str) -> None:
+        cls.drivers[host][group] = {}
+        cls.drivers[host][group]["name"] = ""
+        cls.drivers[host][group]["instance"] = None
+
+    @classmethod
     async def driver(
         cls,
         host: str,
@@ -25,12 +39,11 @@ class Factory:
         if host not in cls.drivers:
             cls.drivers[host] = {}
         if group not in cls.drivers[host]:
-            cls.drivers[host][group] = {}
-            cls.drivers[host][group]["name"] = ""
-            cls.drivers[host][group]["instance"] = None
+            cls.add_group(host, group)
         if cls.drivers[host][group]["name"] != name:
             if cls.drivers[host][group]["instance"] is not None:
                 await cls.close(host, group)
+                cls.add_group(host, group)
             cls.drivers[host][group]["name"] = name
             if group == "speed":
                 if name == "Dell iDRAC 7":
@@ -98,5 +111,9 @@ class Factory:
         host: str,
         group: str,
     ):
-        await cls.drivers[host][group]["instance"].close()
-        del cls.drivers[host]
+        if host in cls.drivers:
+            if group in cls.drivers[host]:
+                if "instance" in cls.drivers[host][group]:
+                    if cls.drivers[host][group]["instance"] is not None:
+                        await cls.drivers[host][group]["instance"].close()
+                    del cls.drivers[host][group]
