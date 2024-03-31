@@ -144,7 +144,7 @@ class VInput(ui.input):
         autocomplete: List[str] | None = None,
         invalid_characters: str = "",
         invalid_values: List[str] = [],
-        max_length: int = 32,
+        max_length: int = 64,
         check: Callable[..., Any] | None = None,
     ) -> None:
         def checks(value: str) -> bool:

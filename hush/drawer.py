@@ -123,11 +123,11 @@ class Drawer(object):
                         os = ui.tab("OS")
                     with ui.tab_panels(tabs, value=oob).classes("w-full"):
                         with ui.tab_panel(oob):
-                            oob_hostname_input = el.VInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\/:;<>|(){}-_=+[],?~""")
+                            oob_hostname_input = el.VInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\/:;<>|(){}=+[],?""")
                             oob_username_input = el.DInput(label="Username", value=" ")
                             oob_password_input = el.DInput(label="Password", value=" ").props("type=password")
                         with ui.tab_panel(os):
-                            os_hostname_input = el.VInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\/:;<>|(){}-_=+[],?~""")
+                            os_hostname_input = el.VInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\/:;<>|(){}=+[],?""")
                             os_username_input = el.DInput(label="Username", value=" ")
                             with el.Card() as c:
                                 c.tailwind.width("full")
