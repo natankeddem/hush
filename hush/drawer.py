@@ -117,17 +117,17 @@ class Drawer(object):
                                 return False
                         return None
 
-                    host_input = el.VInput(label="Host", value=" ", invalid_characters="""'`"$\;&<>|(){}""", invalid_values=all_hosts, check=host_check, max_length=20)
+                    host_input = el.VInput(label="Host", value=" ", invalid_characters="""'`"$\\;&<>|(){}""", invalid_values=all_hosts, check=host_check, max_length=20)
                     with ui.tabs().classes("w-full") as tabs:
                         oob = ui.tab("OOB")
                         os = ui.tab("OS")
                     with ui.tab_panels(tabs, value=oob).classes("w-full"):
                         with ui.tab_panel(oob):
-                            oob_hostname_input = el.VInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\/:;<>|(){}=+[],? """)
+                            oob_hostname_input = el.VInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\\/:;<>|(){}=+[],? """)
                             oob_username_input = el.DInput(label="Username", value=" ")
                             oob_password_input = el.DInput(label="Password", value=" ").props("type=password")
                         with ui.tab_panel(os):
-                            os_hostname_input = el.VInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\/:;<>|(){}=+[],? """)
+                            os_hostname_input = el.VInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\\/:;<>|(){}=+[],? """)
                             os_username_input = el.DInput(label="Username", value=" ")
                             with el.Card() as c:
                                 c.tailwind.width("full")
