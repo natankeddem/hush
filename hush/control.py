@@ -2,6 +2,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 from typing import List
+import asyncio
 import numpy as np
 from scipy.interpolate import interp1d
 import math
@@ -16,8 +17,10 @@ from hush.tabs.monitor import Status
 class Launcher:
     def __init__(self) -> None:
         self.times: dict = {}
+        self.busy: bool = False
 
-    async def run(self):
+    async def run(self) -> None:
+        self.busy = True
         hosts = list(storage.hosts.keys())
         for host in hosts:
             delay = storage.host(host).get("delay", 30)
@@ -29,6 +32,11 @@ class Launcher:
                 machine = Machine(host)
                 await machine.run()
                 self.times[host] = dt.now()
+        self.busy = False
+
+    async def wait_on_not_busy(self) -> None:
+        while self.busy is True:
+            await asyncio.sleep(0.5)
 
 
 class Machine:
