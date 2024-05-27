@@ -115,5 +115,15 @@ class Factory:
             if group in cls.drivers[host]:
                 if "instance" in cls.drivers[host][group]:
                     if cls.drivers[host][group]["instance"] is not None:
-                        await cls.drivers[host][group]["instance"].close()
+                        instance = cls.drivers[host][group]["instance"]
+                        logger.info(f"Closing hardware driver for {host}: {instance}")
+                        await instance.close()
                     del cls.drivers[host][group]
+
+    @classmethod
+    async def close_all(cls):
+        for host in cls.drivers.keys():
+            if isinstance(cls.drivers[host], dict) is True:
+                groups = list(cls.drivers[host].keys())
+                for group in groups:
+                    await cls.close(host=host, group=group)
