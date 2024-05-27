@@ -30,10 +30,19 @@ if __name__ in {"__main__", "__mp_main__"}:
     ui.stepper.default_classes("full-size-stepper")
 
     from hush import page, logo, control
+    from hush.hardware.factory import Factory
 
     launcher = control.Launcher()
-    ui.timer(1, launcher.run)
+    launcher_timer = ui.timer(1, launcher.run)
+
+    async def on_shutdown() -> None:
+        logger.info("Shutdown launcher...")
+        launcher_timer.cancel()
+        await launcher.wait_on_not_busy()
+        logger.info("Closing drivers...")
+        await Factory.close_all()
 
     app.on_startup(lambda: print(f"Starting hush, bound to the following addresses {', '.join(app.urls)}.", flush=True))
+    app.on_shutdown(on_shutdown)
     page.build()
     ui.run(title="hush", favicon="🙊", dark=True, reload=False, show=False, show_welcome_message=False)
