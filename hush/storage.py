@@ -25,6 +25,11 @@ def host(name: str) -> dict:
             "os": {
                 "password": None,
             },
+            "mqtt": {
+                "hostname": "",
+                "username": "",
+                "password": "",
+            },
             "cpu": "None",
             "speed": "None",
             "drive": "None",
