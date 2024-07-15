@@ -9,6 +9,8 @@ import math
 from datetime import datetime as dt
 from datetime import timedelta
 from simple_pid import PID
+from ha_mqtt_discoverable import Settings, DeviceInfo
+from ha_mqtt_discoverable.sensors import Sensor, SensorInfo
 from hush import storage
 from hush.hardware.factory import Factory
 from hush.tabs.monitor import Status
@@ -58,11 +60,33 @@ class Machine:
         current_speed = None
         final_speed = None
         temperatures = {}
+        mqtt_active = False
+        if (
+            "mqtt" in storage.host(self._host)
+            and storage.host(self._host)["mqtt"].get("hostname", "") != ""
+            and storage.host(self._host)["mqtt"].get("username", "") != ""
+            and storage.host(self._host)["mqtt"].get("password", "") != ""
+        ):
+            mqtt_settings = Settings.MQTT(
+                host=storage.host(self._host)["mqtt"].get("hostname", ""),
+                username=storage.host(self._host)["mqtt"].get("username", ""),
+                password=storage.host(self._host)["mqtt"].get("password", ""),
+            )
+            mqtt_device_info = DeviceInfo(name=self._host, identifiers=self._host)
+            mqtt_active = True
         control = await Factory.driver(self._host, "speed")
         for sensor in ["cpu", "drive", "gpu"]:
             driver = await Factory.driver(self._host, sensor)
             if driver is not None:
                 meas_temp = await driver.get_temp()
+                if mqtt_active:
+                    mqtt_names = {"cpu": "CPU Temperature", "drive": "Drive Temperature", "gpu": "GPU Temperature"}
+                    mqtt_sensor_info = SensorInfo(
+                        name=mqtt_names[sensor], device_class="temperature", unique_id=f"hush_{self._host.replace(' ','_')}_{sensor}_temperature", device=mqtt_device_info
+                    )
+                    mqtt_sensor_settings = Settings(mqtt=mqtt_settings, entity=mqtt_sensor_info)
+                    mqtt_sensor = Sensor(mqtt_sensor_settings)
+                    mqtt_sensor.set_state(meas_temp)
                 temperatures[sensor] = meas_temp
                 if storage.algo_sensor(self._host, sensor)["type"] == "pid":
                     pid = Pid(self._host, sensor)
@@ -84,6 +108,11 @@ class Machine:
                         else:
                             final_speed = highest_speed
         if final_speed is not None:
+            if mqtt_active:
+                mqtt_speed_info = SensorInfo(name="Fan Speed", device_class=None, unique_id=f"hush_{self._host.replace(' ','_')}_fan_speed", device=mqtt_device_info)
+                mqtt_speed_settings = Settings(mqtt=mqtt_settings, entity=mqtt_speed_info)
+                mqtt_speed = Sensor(mqtt_speed_settings)
+                mqtt_speed.set_state(final_speed)
             logger.info(f"{control.hostname} Temperature={meas_temp} -> Fan Speed={final_speed}")
             await control.set_speed(final_speed)
             status = Status(
