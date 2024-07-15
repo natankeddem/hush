@@ -121,6 +121,7 @@ class Drawer(object):
                     with ui.tabs().classes("w-full") as tabs:
                         oob = ui.tab("OOB")
                         os = ui.tab("OS")
+                        mqtt = ui.tab("MQTT")
                     with ui.tab_panels(tabs, value=oob).classes("w-full"):
                         with ui.tab_panel(oob):
                             oob_hostname_input = el.VInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\\/:;<>|(){}=+[],? """)
@@ -140,18 +141,27 @@ class Drawer(object):
                                     s.tailwind.height("[100px]")
                                     public_key = await ssh.get_public_key("data")
                                     ui.label(public_key).classes("text-secondary break-all")
+                        with ui.tab_panel(mqtt):
+                            mqtt_hostname_input = el.VInput(label="Hostname", value=" ", invalid_characters="""!@#$%^&*'`"\\/:;<>|(){}=+[],? """)
+                            mqtt_username_input = el.DInput(label="Username", value=" ")
+                            mqtt_password_input = el.DInput(label="Password", value=" ").props("type=password")
                 save_ea = el.ErrorAggregator(host_input)
                 el.DButton("SAVE", on_click=lambda: host_dialog.submit("save")).bind_enabled_from(save_ea, "no_errors")
             host_input.value = name
             if name != "":
                 s = ssh.Ssh(name)
-                oob_hostname_input.value = storage.host(name)["oob"]["hostname"]
-                oob_username_input.value = storage.host(name)["oob"]["username"]
-                oob_password_input.value = storage.host(name)["oob"]["password"]
+                if "oob" in storage.host(name):
+                    oob_hostname_input.value = storage.host(name)["oob"].get("hostname", "")
+                    oob_username_input.value = storage.host(name)["oob"].get("username", "")
+                    oob_password_input.value = storage.host(name)["oob"].get("password", "")
                 os_hostname_input.value = s.hostname
                 os_username_input.value = s.username
-                os_password_input.value = storage.host(name)["os"]["password"]
-
+                if "os" in storage.host(name):
+                    os_password_input.value = storage.host(name)["os"].get("password", "")
+                if "mqtt" in storage.host(name):
+                    mqtt_hostname_input.value = storage.host(name)["mqtt"].get("hostname", "")
+                    mqtt_username_input.value = storage.host(name)["mqtt"].get("username", "")
+                    mqtt_password_input.value = storage.host(name)["mqtt"].get("password", "")
         result = await host_dialog
         if result == "save":
             host = host_input.value.strip()
@@ -163,9 +173,18 @@ class Drawer(object):
                 for row in self._table.rows:
                     if name == row["name"]:
                         self._table.remove_rows(row)
+                if "oob" not in storage.host(name):
+                    storage.host(host)["oob"] = {}
+                if "os" not in storage.host(name):
+                    storage.host(host)["os"] = {}
+                if "mqtt" not in storage.host(name):
+                    storage.host(host)["mqtt"] = {}
                 storage.host(host)["oob"]["hostname"] = oob_hostname_input.value
                 storage.host(host)["oob"]["username"] = oob_username_input.value
                 storage.host(host)["oob"]["password"] = oob_password_input.value
+                storage.host(host)["mqtt"]["hostname"] = mqtt_hostname_input.value
+                storage.host(host)["mqtt"]["username"] = mqtt_username_input.value
+                storage.host(host)["mqtt"]["password"] = mqtt_password_input.value
                 if os_password_input.value is None:
                     storage.host(host)["os"]["password"] = None
                 else:
