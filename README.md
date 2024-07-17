@@ -17,6 +17,7 @@ GUI enabled Docker based fan controller. I appreciate all comments/feedback/bug 
 * Temperature calculation takes into account CPUs, Drives and GPUs.
 * Full GUI configuration, no YAML or INI file editing required.
 * Allows monitoring of temperatures and fan speeds.
+* Transmits MQTT sensor data to external message brokers, includes support for Home Assistant MQTT discovery.
 
 ## Supported Protocols
 
