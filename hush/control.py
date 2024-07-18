@@ -82,7 +82,7 @@ class Machine:
                 if mqtt_active:
                     mqtt_names = {"cpu": "CPU Temperature", "drive": "Drive Temperature", "gpu": "GPU Temperature"}
                     mqtt_sensor_info = SensorInfo(
-                        name=mqtt_names[sensor], device_class="temperature", unique_id=f"hush_{self._host.replace(' ','_')}_{sensor}_temperature", device=mqtt_device_info
+                        name=mqtt_names[sensor], device_class="temperature", unique_id=f"hush_{self._host.replace(' ','_')}_{sensor}_temperature", unit_of_measurement="°C", device=mqtt_device_info
                     )
                     mqtt_sensor_settings = Settings(mqtt=mqtt_settings, entity=mqtt_sensor_info)
                     mqtt_sensor = Sensor(mqtt_sensor_settings)
@@ -109,7 +109,7 @@ class Machine:
                             final_speed = highest_speed
         if final_speed is not None:
             if mqtt_active:
-                mqtt_speed_info = SensorInfo(name="Fan Speed", device_class=None, unique_id=f"hush_{self._host.replace(' ','_')}_fan_speed", device=mqtt_device_info)
+                mqtt_speed_info = SensorInfo(name="Fan Speed", device_class=None, unique_id=f"hush_{self._host.replace(' ','_')}_fan_speed", unit_of_measurement="%", device=mqtt_device_info)
                 mqtt_speed_settings = Settings(mqtt=mqtt_settings, entity=mqtt_speed_info)
                 mqtt_speed = Sensor(mqtt_speed_settings)
                 mqtt_speed.set_state(final_speed)
