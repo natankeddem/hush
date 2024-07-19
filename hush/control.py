@@ -109,7 +109,10 @@ class Machine:
                             final_speed = highest_speed
         if final_speed is not None:
             if mqtt_active:
-                mqtt_speed_info = SensorInfo(name="Fan Speed", device_class=None, unique_id=f"hush_{self._host.replace(' ','_')}_fan_speed", unit_of_measurement="%", device=mqtt_device_info)
+                unit_of_measurement = None
+                if isinstance(final_speed, int) or isinstance(final_speed, float):
+                    unit_of_measurement = "%"
+                mqtt_speed_info = SensorInfo(name="Fan Speed", device_class=None, unique_id=f"hush_{self._host.replace(' ','_')}_fan_speed", unit_of_measurement=unit_of_measurement, device=mqtt_device_info)
                 mqtt_speed_settings = Settings(mqtt=mqtt_settings, entity=mqtt_speed_info)
                 mqtt_speed = Sensor(mqtt_speed_settings)
                 mqtt_speed.set_state(final_speed)
