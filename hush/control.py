@@ -92,14 +92,15 @@ class Machine:
                     mqtt_sensor = Sensor(mqtt_sensor_settings)
                     mqtt_sensor.set_state(meas_temp)
                 temperatures[sensor] = meas_temp
-                if storage.algo_sensor(self._host, sensor)["type"] == "pid":
-                    pid = Pid(self._host, sensor)
-                    speed = round(-1 * pid.controller(meas_temp))
-                    logger.debug(f"{control.hostname} Temperature={meas_temp} Speed={speed}")
-                else:
-                    curve = Curve(self._host, sensor)
-                    speed = curve.calc(meas_temp)
-                    logger.debug(f"{control.hostname} Temperature={meas_temp} Speed={speed} Speeds={curve.speeds}")
+                if control is not None:
+                    if storage.algo_sensor(self._host, sensor)["type"] == "pid":
+                        pid = Pid(self._host, sensor)
+                        speed = round(-1 * pid.controller(meas_temp))
+                        logger.debug(f"{control.hostname} Temperature={meas_temp} Speed={speed}")
+                    else:
+                        curve = Curve(self._host, sensor)
+                        speed = curve.calc(meas_temp)
+                        logger.debug(f"{control.hostname} Temperature={meas_temp} Speed={speed} Speeds={curve.speeds}")
                 if speed is not None:
                     if isinstance(speed, str) is True:
                         current_speed = curve.speeds.index(speed)
