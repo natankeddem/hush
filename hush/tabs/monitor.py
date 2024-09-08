@@ -39,12 +39,13 @@ class Monitor(Tab):
     def __init__(self, host=None) -> None:
         self._time = None
         self._cpu_temp = None
+        self._pci_temp = None
         self._drive_temp = None
         self._gpu_temp = None
         self._speed = None
         self._status = None
         self._timestamp = 0
-        self._groups = ["speed", "cpu", "drive", "gpu"]
+        self._groups = ["speed", "cpu", "pci", "drive", "gpu"]
         super().__init__(host)
 
     def _build(self):

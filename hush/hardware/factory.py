@@ -91,6 +91,11 @@ class Factory:
                     cls.drivers[host][group]["instance"] = cisco.M3(host)
                 else:
                     cls.drivers[host][group]["instance"] = None
+            if group == "pci":
+                if name == "HP iLO 4":
+                    cls.drivers[host][group]["instance"] = ilo.Pci(host)
+                else:
+                    cls.drivers[host][group]["instance"] = None
             elif group == "drive":
                 if name == "SMART":
                     cls.drivers[host][group]["instance"] = smart.Smart(host)

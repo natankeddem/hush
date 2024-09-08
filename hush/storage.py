@@ -31,6 +31,7 @@ def host(name: str) -> dict:
                 "password": "",
             },
             "cpu": "None",
+            "pci": "None",
             "speed": "None",
             "drive": "None",
             "gpu": "None",

@@ -75,7 +75,7 @@ class Machine:
             mqtt_device_info = DeviceInfo(name=self._host, identifiers=self._host)
             mqtt_active = True
         control = await Factory.driver(self._host, "speed")
-        for sensor in ["cpu", "drive", "gpu"]:
+        for sensor in ["cpu", "pci", "drive", "gpu"]:
             driver = await Factory.driver(self._host, sensor)
             if driver is not None:
                 meas_temp = await driver.get_temp()

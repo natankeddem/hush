@@ -14,7 +14,7 @@ from hush.storage import host, algo_sensor, curve_speed, curve_temp, pid_coeffic
 
 class Control(Tab):
     def __init__(self, host=None) -> None:
-        self._sensor_names = ["cpu", "drive", "gpu"]
+        self._sensor_names = ["cpu", "pci", "drive", "gpu"]
         super().__init__(host)
 
     def _build(self):

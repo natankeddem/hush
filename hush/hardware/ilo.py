@@ -58,3 +58,14 @@ class iLO4(Device):
                 },
             )
         return self._ssh
+
+
+class Pci(iLO4):
+    async def get_temp(self):
+        pci_temps = list()
+        response = await self.json_request.get("chassis/1/Thermal")
+        for temperature in response["Temperatures"]:
+            if temperature["Name"].find("PCI") != -1:
+                pci_temps.append(float(temperature["CurrentReading"]))
+        self._temp = int(np.max(pci_temps))
+        return self._temp

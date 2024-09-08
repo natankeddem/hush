@@ -23,6 +23,7 @@ cpu_sensor_names = [
     "Cisco M4",
     "Cisco M5",
 ]
+pci_sensor_names = ["None", "HP iLO 4"]
 speed_ctrl_names = [
     "None",
     "Dell iDRAC 7",
@@ -74,6 +75,14 @@ class Configure(Tab):
                     on_change=lambda e: self._store("cpu", e.value),
                 ).classes("col")
                 el.LgButton("Test", on_click=lambda: self._test("cpu"))
+            with el.WRow():
+                ui.select(
+                    pci_sensor_names,
+                    label="PCI Temperature Sensor",
+                    value=storage.host(self.host).get("pci", pci_sensor_names[0]),
+                    on_change=lambda e: self._store("pci", e.value),
+                ).classes("col")
+                el.LgButton("Test", on_click=lambda: self._test("pci"))
             with el.WRow():
                 ui.select(
                     drive_sensor_names,
