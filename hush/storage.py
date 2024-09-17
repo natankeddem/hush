@@ -13,6 +13,19 @@ if hosts is None:
     app.storage.general[configs_version_string] = {}
 hosts = app.storage.general[configs_version_string]
 
+for h in hosts:
+    if "cpu" in hosts[h]:
+        if hosts[h]["cpu"] == "HP iLO 4":
+            hosts[h]["cpu"] = "HP iLO 4 All"
+    if "pci" in hosts[h]:
+        if hosts[h]["pci"] == "HP iLO 4":
+            hosts[h]["pci"] = "HP iLO 4 All"
+    if "speed" in hosts[h]:
+        if hosts[h]["speed"] == "HP iLO 4":
+            hosts[h]["speed"] = "HP iLO 4 All"
+    if "ilo4" not in hosts[h]:
+        hosts[h]["ilo4"] = {}
+
 
 def host(name: str) -> dict:
     if name not in hosts:
@@ -37,6 +50,7 @@ def host(name: str) -> dict:
             "gpu": "None",
             "delay": 30,
             "algo": {},
+            "ilo4": {},
         }
     return hosts[name]
 
