@@ -82,7 +82,7 @@ def load_terminal_css():
     ui.add_head_html('<link href="static/jse-theme-dark.css" rel="stylesheet">')
 
 
-class Terminal(ui.element, component="../../static/terminal.js", libraries=["../../static/xterm.js"]):  # type: ignore[call-arg]
+class Terminal(ui.element, component="../../static/terminal.js", dependencies=["../../static/xterm.js"]):  # type: ignore[call-arg]
     def __init__(
         self,
         options: Dict,

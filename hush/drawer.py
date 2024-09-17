@@ -50,7 +50,7 @@ class Drawer(object):
                     ui.label(text="HOSTS").classes("text-secondary")
                 self._table = (
                     ui.table(
-                        [
+                        columns=[
                             {
                                 "name": "name",
                                 "label": "Name",
@@ -60,7 +60,7 @@ class Drawer(object):
                                 "sortable": True,
                             }
                         ],
-                        [],
+                        rows=[],
                         row_key="name",
                         pagination={"rowsPerPage": 0, "sortBy": "name"},
                         on_select=lambda e: self._selected(e),
@@ -83,7 +83,7 @@ class Drawer(object):
             for row in self._table.rows:
                 if name == row["name"]:
                     return
-            self._table.add_rows({"name": name})
+            self._table.add_row({"name": name})
             self._table.visible = True
 
     async def _display_host_dialog(self, name=""):
