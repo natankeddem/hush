@@ -52,8 +52,10 @@ class Factory:
                     cls.drivers[host][group]["instance"] = idrac.Ipmi(host)
                 elif name == "Dell iDRAC 9":
                     cls.drivers[host][group]["instance"] = idrac.Redfish(host)
-                elif name == "HP iLO 4":
-                    cls.drivers[host][group]["instance"] = ilo.iLO4(host)
+                elif name == "HP iLO 4 All":
+                    cls.drivers[host][group]["instance"] = ilo.iLO4(host, fans=[])
+                elif name == "HP iLO 4 Discrete":
+                    cls.drivers[host][group]["instance"] = ilo.iLO4(host, fans=storage.host(host)["ilo4"].get(group, []))
                 elif name == "Supermicro X9":
                     cls.drivers[host][group]["instance"] = supermicro.X9(host)
                 elif name == "Supermicro X10":
@@ -75,8 +77,11 @@ class Factory:
                     cls.drivers[host][group]["instance"] = idrac.Ipmi(host)
                 elif name == "Dell iDRAC 9":
                     cls.drivers[host][group]["instance"] = idrac.Redfish(host)
-                elif name == "HP iLO 4":
+                elif name == "HP iLO 4 All":
                     cls.drivers[host][group]["instance"] = ilo.iLO4(host)
+                    await cls.drivers[host][group]["instance"].set_cpu_temp_names()
+                elif name == "HP iLO 4 Discrete":
+                    cls.drivers[host][group]["instance"] = ilo.iLO4(host, temps=storage.host(host)["ilo4"].get(group, []))
                 elif name == "Supermicro X9":
                     cls.drivers[host][group]["instance"] = supermicro.X9(host)
                 elif name == "Supermicro X10":
@@ -92,8 +97,11 @@ class Factory:
                 else:
                     cls.drivers[host][group]["instance"] = None
             if group == "pci":
-                if name == "HP iLO 4":
-                    cls.drivers[host][group]["instance"] = ilo.Pci(host)
+                if name == "HP iLO 4 All":
+                    cls.drivers[host][group]["instance"] = ilo.iLO4(host)
+                    await cls.drivers[host][group]["instance"].set_pci_temp_names()
+                elif name == "HP iLO 4 Discrete":
+                    cls.drivers[host][group]["instance"] = ilo.iLO4(host, temps=storage.host(host)["ilo4"].get(group, []))
                 else:
                     cls.drivers[host][group]["instance"] = None
             elif group == "drive":
@@ -123,7 +131,9 @@ class Factory:
                         instance = cls.drivers[host][group]["instance"]
                         logger.info(f"Closing hardware driver for {host}: {instance}")
                         await instance.close()
-                    del cls.drivers[host][group]
+        if host in cls.drivers:
+            if group in cls.drivers[host]:
+                del cls.drivers[host][group]
 
     @classmethod
     async def close_all(cls):
