@@ -23,8 +23,13 @@ for h in hosts:
     if "speed" in hosts[h]:
         if hosts[h]["speed"] == "HP iLO 4":
             hosts[h]["speed"] = "HP iLO 4 All"
+    if "drive" in hosts[h]:
+        if hosts[h]["drive"] == "SMART":
+            hosts[h]["drive"] = "SMART All"
     if "ilo4" not in hosts[h]:
         hosts[h]["ilo4"] = {}
+    if "smart" not in hosts[h]:
+        hosts[h]["smart"] = {}
 
 
 def host(name: str) -> dict:
@@ -51,6 +56,7 @@ def host(name: str) -> dict:
             "delay": 30,
             "algo": {},
             "ilo4": {},
+            "smart": {},
         }
     return hosts[name]
 

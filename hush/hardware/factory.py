@@ -105,8 +105,10 @@ class Factory:
                 else:
                     cls.drivers[host][group]["instance"] = None
             elif group == "drive":
-                if name == "SMART":
+                if name == "SMART All":
                     cls.drivers[host][group]["instance"] = smart.Smart(host)
+                elif name == "SMART Discrete":
+                    cls.drivers[host][group]["instance"] = smart.Smart(host, drives=storage.host(host)["smart"].get(group, []))
                 else:
                     cls.drivers[host][group]["instance"] = None
             if group == "gpu":

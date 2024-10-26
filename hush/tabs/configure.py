@@ -45,7 +45,7 @@ speed_ctrl_names = [
     "Cisco M4",
     "Cisco M5",
 ]
-drive_sensor_names = ["None", "SMART"]
+drive_sensor_names = ["None", "SMART All", "SMART Discrete"]
 gpu_sensor_names = ["None", "Nvidia", "Supermicro"]
 
 
@@ -58,6 +58,7 @@ class Configure(Tab):
         self._select = {}
         self._skeleton = {}
         self._ilo4 = {}
+        self._smart = {}
         self._add_selections()
 
     def _add_selections(self):
@@ -107,13 +108,17 @@ class Configure(Tab):
             self._ilo4["pci"] = el.WRow()
             self._ilo4["pci"].visible = False
             with el.WRow():
-                ui.select(
+                self._select["drive"] = ui.select(
                     drive_sensor_names,
                     label="Drive Temperature Sensor",
                     value=storage.host(self.host).get("drive", drive_sensor_names[0]),
                     on_change=lambda e: self._store("drive", e.value),
                 ).classes("col")
                 el.LgButton("Test", on_click=lambda: self._test("drive"))
+            self._skeleton["drive"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
+            self._skeleton["drive"].visible = False
+            self._smart["drive"] = el.WRow()
+            self._smart["drive"].visible = False
             with el.WRow():
                 ui.select(
                     gpu_sensor_names,
@@ -129,6 +134,7 @@ class Configure(Tab):
         if group == "speed" and "algo" in storage.host(self.host):
             del storage.host(self.host)["algo"]
         await self._build_ilo4_ctrl(group)
+        await self._build_smart_ctrl()
         await Factory.close(self.host, group)
         self._control_rebuild()
 
@@ -161,16 +167,43 @@ class Configure(Tab):
             if group in self._ilo4:
                 self._ilo4[group].visible = False
 
+    async def _build_smart_ctrl(self):
+        if self._select["drive"].value == "SMART Discrete":
+            self._skeleton["drive"].visible = True
+            self._smart["drive"].bind_visibility_from(self._skeleton["drive"], value=False)
+            self._smart["drive"].clear()
+            with self._smart["drive"]:
+                await Factory.close(self.host, "drive")
+                device = await Factory.driver(self.host, "drive")
+                options = await device.get_drive_list()
+                ui.select(
+                    options,
+                    label="SMART Drives",
+                    value=storage.host(self.host)["smart"].get("drive", []),
+                    on_change=lambda e: self._store_smart("drive", e.value),
+                    multiple=True,
+                ).classes("col")
+            self._skeleton["drive"].visible = False
+        else:
+            self._smart["drive"].visible = False
+
     async def _update_ctrls(self):
         groups = ["speed", "cpu", "pci"]
         for group in groups:
             if self._select[group].value == "HP iLO 4 Discrete":
                 self._skeleton[group].visible = True
+        if self._select["drive"].value == "SMART Discrete":
+            self._skeleton["drive"].visible = True
         for group in groups:
             await self._build_ilo4_ctrl(group)
+        await self._build_smart_ctrl()
 
     async def _store_ilo4(self, group, value):
         storage.host(self.host)["ilo4"][group] = value
+        await Factory.close(self.host, group)
+
+    async def _store_smart(self, group, value):
+        storage.host(self.host)["smart"][group] = value
         await Factory.close(self.host, group)
 
     async def _test(self, group):
