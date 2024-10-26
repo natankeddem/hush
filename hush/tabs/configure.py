@@ -158,7 +158,8 @@ class Configure(Tab):
                 ).classes("col")
             self._skeleton[group].visible = False
         else:
-            self._ilo4[group].visible = False
+            if group in self._ilo4:
+                self._ilo4[group].visible = False
 
     async def _update_ctrls(self):
         groups = ["speed", "cpu", "pci"]
