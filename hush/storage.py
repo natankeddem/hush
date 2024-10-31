@@ -30,6 +30,8 @@ for h in hosts:
         hosts[h]["ilo4"] = {}
     if "smart" not in hosts[h]:
         hosts[h]["smart"] = {}
+    if "chassis" not in hosts[h]:
+        hosts[h]["chassis"] = "None"
 
 
 def host(name: str) -> dict:
@@ -53,6 +55,7 @@ def host(name: str) -> dict:
             "speed": "None",
             "drive": "None",
             "gpu": "None",
+            "chassis": "None",
             "delay": 30,
             "algo": {},
             "ilo4": {},

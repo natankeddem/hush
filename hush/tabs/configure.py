@@ -44,9 +44,11 @@ speed_ctrl_names = [
     "Cisco M3",
     "Cisco M4",
     "Cisco M5",
+    "OpenJBOD",
 ]
 drive_sensor_names = ["None", "SMART All", "SMART Discrete"]
 gpu_sensor_names = ["None", "Nvidia", "Supermicro"]
+chassis_sensor_names = ["None", "OpenJBOD"]
 
 
 class Configure(Tab):
@@ -120,13 +122,21 @@ class Configure(Tab):
             self._smart["drive"] = el.WRow()
             self._smart["drive"].visible = False
             with el.WRow():
-                ui.select(
+                self._select["gpu"] = ui.select(
                     gpu_sensor_names,
                     label="GPU Temperature Sensor",
                     value=storage.host(self.host).get("gpu", gpu_sensor_names[0]),
                     on_change=lambda e: self._store("gpu", e.value),
                 ).classes("col")
                 el.LgButton("Test", on_click=lambda: self._test("gpu"))
+            with el.WRow():
+                self._select["chassis"] = ui.select(
+                    chassis_sensor_names,
+                    label="Chassis Temperature Sensor",
+                    value=storage.host(self.host).get("chassis", chassis_sensor_names[0]),
+                    on_change=lambda e: self._store("chassis", e.value),
+                ).classes("col")
+                el.LgButton("Test", on_click=lambda: self._test("chassis"))
             ui.timer(0, self._update_ctrls, once=True)
 
     async def _store(self, group, value):

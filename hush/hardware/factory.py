@@ -10,6 +10,7 @@ from hush.hardware import idrac
 from hush.hardware import ilo
 from hush.hardware import smart
 from hush.hardware import supermicro
+from hush.hardware import openjbod
 
 
 class Factory:
@@ -68,6 +69,8 @@ class Factory:
                     cls.drivers[host][group]["instance"] = cisco.M3(host)
                 elif name == "Cisco M5":
                     cls.drivers[host][group]["instance"] = cisco.M3(host)
+                elif name == "OpenJBOD":
+                    cls.drivers[host][group]["instance"] = openjbod.Rp2040(host)
                 else:
                     cls.drivers[host][group]["instance"] = None
             if group == "cpu":
@@ -116,6 +119,11 @@ class Factory:
                     cls.drivers[host][group]["instance"] = nvidia.Gpu(host)
                 elif name == "Supermicro":
                     cls.drivers[host][group]["instance"] = supermicro.Gpu(host)
+                else:
+                    cls.drivers[host][group]["instance"] = None
+            if group == "chassis":
+                if name == "OpenJBOD":
+                    cls.drivers[host][group]["instance"] = openjbod.Rp2040(host)
                 else:
                     cls.drivers[host][group]["instance"] = None
         return cls.drivers[host][group]["instance"]
