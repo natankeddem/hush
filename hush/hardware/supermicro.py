@@ -35,7 +35,7 @@ class X9(Device):
                         if data[0] == sensor and data[1] != "":
                             cpu_temps.append(float(data[1]))
             if core is None:
-                self._temp = int(np.mean(cpu_temps))
+                self._temp = int(np.max(cpu_temps))
             else:
                 self._temp = int(cpu_temps[core])
             return self._temp
@@ -105,7 +105,7 @@ class Gpu(X9):
                         data = line.split(",")
                         if data[0] == sensor and data[1] != "":
                             gpu_temps.append(float(data[1]))
-            self._temp = int(np.mean(gpu_temps))
+            self._temp = int(np.max(gpu_temps))
             return self._temp
         except Exception as e:
             logger.error(f"{self.hostname} failed to get gpu temperature from: {result}")

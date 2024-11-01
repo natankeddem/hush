@@ -48,7 +48,7 @@ class Smart(Device):
                 temp = await self.get_drive_temp(drive_path=drive_path)
                 if temp is not None:
                     drive_temps.append(float(temp))
-            self._temp = int(np.mean(drive_temps))
+            self._temp = int(np.max(drive_temps))
             return self._temp
         except Exception as e:
             logger.info(f"drive_paths = {self._drives}")

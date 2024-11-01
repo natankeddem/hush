@@ -43,7 +43,7 @@ class Redfish(Device):
                 logger.error(f"{self.hostname} failed to get cpu temperature from: {response}")
             raise e
         if core is None:
-            self._temp = int(np.mean(cpu_temps))
+            self._temp = int(np.max(cpu_temps))
         else:
             self._temp = cpu_temps[core]
         return self._temp
@@ -126,7 +126,7 @@ class Ipmi(Device):
                 if data[0] == "Temp" and data[1] != "":
                     cpu_temps.append(float(data[1]))
             if core is None:
-                self._temp = int(np.mean(cpu_temps))
+                self._temp = int(np.max(cpu_temps))
             else:
                 self._temp = cpu_temps[core]
             return self._temp

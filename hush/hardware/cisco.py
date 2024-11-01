@@ -89,7 +89,7 @@ class M3(Device):
             for cpu in cpus:
                 cpu_temps.append(float(cpu["@temperature"]))
             if core is None:
-                self._temp = int(np.mean(cpu_temps))
+                self._temp = int(np.max(cpu_temps))
             else:
                 self._temp = int(cpu_temps[core])
             return self._temp

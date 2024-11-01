@@ -16,7 +16,7 @@ class Gpu(Device):
             temperatures = []
             for temperature in result.stdout_lines:
                 temperatures.append(float(temperature.strip()))
-            temperature = int(np.mean(temperatures))
+            temperature = int(np.max(temperatures))
             return temperature
         except Exception as e:
             logger.info(f"{self.hostname} failed to get gpu temperature:")
