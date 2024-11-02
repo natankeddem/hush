@@ -30,7 +30,7 @@ class Smart(Device):
             regular_expressions = [r"^(?:Current(?:\sDrive)?\s)?Temperature:\s*(-?\d+)", r"(-?\d+)\s+---\s+(?:Current\s+)?Temperature\Z"]
             for line in result.stdout_lines:
                 for regular_expression in regular_expressions:
-                    temp = re.search(regular_expression, line)
+                    temp = re.search(regular_expression, line.strip())
                     if temp is not None and temp.lastindex == 1:
                         return float(temp.group(1))
             logger.info(f"{self.hostname} failed to get drive temperature {drive_path}:")
