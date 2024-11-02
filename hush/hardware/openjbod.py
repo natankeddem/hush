@@ -14,16 +14,16 @@ class Rp2040(Device):
         self.get_oob_credentials()
 
     async def close(self):
-        await self.json_request.post(path="fanmode", payload={"use_ext_fan_ctrl": False})
+        await self.json_request.post(path="api/fanmode", payload={"use_ext_fan_ctrl": False})
 
     async def get_temp(self):
-        response = await self.json_request.get(path="temperatures")
+        response = await self.json_request.get(path="api/temperatures")
         self._temp = max(response.values())
         return self._temp
 
     async def set_speed(self, speed):
         self._speed = speed
-        await self.json_request.post(path="fans", payload={"fan0": speed})
+        await self.json_request.post(path="api/fans", payload={"fan0": speed})
 
     @property
     def json_request(self) -> http.Json:
