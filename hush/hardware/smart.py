@@ -27,10 +27,12 @@ class Smart(Device):
     async def get_drive_temp(self, drive_path):
         try:
             result = await self.ssh.shell(f'smartctl -x {drive_path} | grep -E "Temperature|temperature"')
+            regular_expressions = [r"^(?:Current(?:\sDrive)?\s)?Temperature:\s*(-?\d+)", r"(-?\d+)\s+---\s+(?:Current\s+)?Temperature\Z"]
             for line in result.stdout_lines:
-                temp = re.search(r"^(?:Current(?:\sDrive)?\s)?Temperature:\s*(\d+)", line)
-                if temp is not None and temp.lastindex == 1:
-                    return float(temp.group(1))
+                for regular_expression in regular_expressions:
+                    temp = re.search(regular_expression, line)
+                    if temp is not None and temp.lastindex == 1:
+                        return float(temp.group(1))
             logger.info(f"{self.hostname} failed to get drive temperature {drive_path}:")
             logger.info(f"result = {result}")
             return None
