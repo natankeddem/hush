@@ -113,8 +113,12 @@ class PwmControl:
     def _set_point(self, index, x, y):
         if x > 100:
             x = 100
+        if x < 20:
+            x = 20
         if y > 100:
             y = 100
+        if y < 0:
+            y = 0
         curve = self._curve
         curve[index] = [x, y]
         self._curve = curve
@@ -212,11 +216,7 @@ class ModeControl(PwmControl):
     @_curve.setter
     def _curve(self, curve):
         temps, speeds = zip(*curve)
-        speeds = list(speeds)
-        for speed in speeds:
-            if isinstance(speed, int) is True:
-                speeds[speed] = self._modes[speed]
-        curve_speed(self.host, self._sensor).update(dict(zip(self._levels, speeds)))
+        curve_speed(self.host, self._sensor).update(dict(zip(self._levels, self._modes)))
         curve_temp(self.host, self._sensor).update(dict(zip(self._levels, list(temps))))
         if self._chart is not None:
             self._chart.options["series"][0] = self._chart_options["series"][0]
