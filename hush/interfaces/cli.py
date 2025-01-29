@@ -158,6 +158,7 @@ class Cli:
         self._busy = True
         c = shlex.split(command, posix=False)
         try:
+            logger.debug("command: " + command)
             process = await asyncio.create_subprocess_exec(*c, stdout=PIPE, stderr=PIPE)
             if process is not None and process.stdout is not None and process.stderr is not None:
                 self.stdout.clear()
@@ -182,6 +183,8 @@ class Cli:
         finally:
             self._terminate.clear()
             self._busy = False
+        logger.debug("stdout: " + "".join(self.stdout).strip())
+        logger.debug("stderr: " + "".join(self.stderr).strip())
         return Result(
             command=command,
             return_code=process.returncode,
@@ -194,6 +197,7 @@ class Cli:
     async def shell(self, command: str, max_output_lines: int = 0) -> Result:
         self._busy = True
         try:
+            logger.debug("command: " + command)
             process = await asyncio.create_subprocess_shell(command, stdout=PIPE, stderr=PIPE)
             if process is not None and process.stdout is not None and process.stderr is not None:
                 self.stdout.clear()
@@ -218,6 +222,8 @@ class Cli:
         finally:
             self._terminate.clear()
             self._busy = False
+        logger.debug("stdout: " + "".join(self.stdout).strip())
+        logger.debug("stderr: " + "".join(self.stderr).strip())
         return Result(
             command=command,
             return_code=process.returncode,
