@@ -5,6 +5,7 @@ from typing import Optional
 from enum import IntEnum
 import numpy as np
 from . import Device
+from hush.interfaces import ipmitool
 
 
 class X9(Device):
@@ -90,7 +91,11 @@ class X10(X9):
 
 
 class X11(X10):
-    pass
+    @property
+    def ipmi(self) -> ipmitool.IpmiTool:
+        if self._ipmitool is None:
+            self._ipmitool = ipmitool.IpmiTool(self.hostname, self.username, "" if self.password is None else self.password, interface="lan")
+        return self._ipmitool
 
 
 class Gpu(X9):
