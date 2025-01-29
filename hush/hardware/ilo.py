@@ -89,7 +89,7 @@ class iLO4(Device):
                 password=self.password,
                 options={
                     "PubKeyAcceptedKeyTypes": "+ssh-rsa",
-                    "HostKeyAlgorithms": "+ssh-dss",
+                    "HostKeyAlgorithms": "+ssh-rsa",
                     "KexAlgorithms": "+diffie-hellman-group14-sha1",
                 },
             )
