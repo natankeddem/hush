@@ -71,14 +71,14 @@ class Configure(Tab):
                 ui.number(
                     "Delay",
                     value=storage.host(self.host).get("delay", 30),
-                    on_change=lambda e: self._store("delay", e.value),
+                    on_change=lambda e: self._store_delay(e.value),
                 ).classes("col")
             with el.WRow():
                 self._select["speed"] = ui.select(
                     speed_ctrl_names,
                     label="Speed Controller",
                     value=storage.host(self.host).get("speed", speed_ctrl_names[0]),
-                    on_change=lambda e: self._store("speed", e.value),
+                    on_change=lambda e: self._store_select("speed", e.value),
                 ).classes("col")
                 el.LgButton("Test", on_click=lambda: self._test("speed"))
             self._skeleton["speed"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
@@ -90,7 +90,7 @@ class Configure(Tab):
                     cpu_sensor_names,
                     label="CPU Temperature Sensor",
                     value=storage.host(self.host).get("cpu", cpu_sensor_names[0]),
-                    on_change=lambda e: self._store("cpu", e.value),
+                    on_change=lambda e: self._store_select("cpu", e.value),
                 ).classes("col")
                 el.LgButton("Test", on_click=lambda: self._test("cpu"))
             self._skeleton["cpu"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
@@ -102,7 +102,7 @@ class Configure(Tab):
                     pci_sensor_names,
                     label="PCI Temperature Sensor",
                     value=storage.host(self.host).get("pci", pci_sensor_names[0]),
-                    on_change=lambda e: self._store("pci", e.value),
+                    on_change=lambda e: self._store_select("pci", e.value),
                 ).classes("col")
                 el.LgButton("Test", on_click=lambda: self._test("pci"))
             self._skeleton["pci"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
@@ -114,7 +114,7 @@ class Configure(Tab):
                     drive_sensor_names,
                     label="Drive Temperature Sensor",
                     value=storage.host(self.host).get("drive", drive_sensor_names[0]),
-                    on_change=lambda e: self._store("drive", e.value),
+                    on_change=lambda e: self._store_select("drive", e.value),
                 ).classes("col")
                 el.LgButton("Test", on_click=lambda: self._test("drive"))
             self._skeleton["drive"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
@@ -126,7 +126,7 @@ class Configure(Tab):
                     gpu_sensor_names,
                     label="GPU Temperature Sensor",
                     value=storage.host(self.host).get("gpu", gpu_sensor_names[0]),
-                    on_change=lambda e: self._store("gpu", e.value),
+                    on_change=lambda e: self._store_select("gpu", e.value),
                 ).classes("col")
                 el.LgButton("Test", on_click=lambda: self._test("gpu"))
             with el.WRow():
@@ -134,12 +134,15 @@ class Configure(Tab):
                     chassis_sensor_names,
                     label="Chassis Temperature Sensor",
                     value=storage.host(self.host).get("chassis", chassis_sensor_names[0]),
-                    on_change=lambda e: self._store("chassis", e.value),
+                    on_change=lambda e: self._store_select("chassis", e.value),
                 ).classes("col")
                 el.LgButton("Test", on_click=lambda: self._test("chassis"))
             ui.timer(0, self._update_ctrls, once=True)
 
-    async def _store(self, group, value):
+    async def _store_delay(self, value):
+        storage.host(self.host)["delay"] = value
+
+    async def _store_select(self, group, value):
         storage.host(self.host)[group] = value
         if group == "speed" and "algo" in storage.host(self.host):
             del storage.host(self.host)["algo"]
@@ -169,7 +172,7 @@ class Configure(Tab):
                     options,
                     label=labels[group],
                     value=storage.host(self.host)["ilo4"].get(group, []),
-                    on_change=lambda e: self._store_ilo4(group, e.value),
+                    on_change=lambda e: self._store_select_ilo4(group, e.value),
                     multiple=True,
                 ).classes("col")
             self._skeleton[group].visible = False
@@ -190,7 +193,7 @@ class Configure(Tab):
                     options,
                     label="SMART Drives",
                     value=storage.host(self.host)["smart"].get("drive", []),
-                    on_change=lambda e: self._store_smart("drive", e.value),
+                    on_change=lambda e: self._store_select_smart("drive", e.value),
                     multiple=True,
                 ).classes("col")
             self._skeleton["drive"].visible = False
@@ -208,11 +211,11 @@ class Configure(Tab):
             await self._build_ilo4_ctrl(group)
         await self._build_smart_ctrl()
 
-    async def _store_ilo4(self, group, value):
+    async def _store_select_ilo4(self, group, value):
         storage.host(self.host)["ilo4"][group] = value
         await Factory.close(self.host, group)
 
-    async def _store_smart(self, group, value):
+    async def _store_select_smart(self, group, value):
         storage.host(self.host)["smart"][group] = value
         await Factory.close(self.host, group)
 
