@@ -28,7 +28,7 @@ class iLO4(Device):
         if self.hostname not in self.thermal_info:
             self.thermal_info[self.hostname] = {"data": {}, "timestamp": 0}
         if time.time() - self.thermal_info[self.hostname]["timestamp"] > cache_lifetime:
-            self.thermal_info[self.hostname]["data"] = await self.json_request.get("chassis/1/Thermal")
+            self.thermal_info[self.hostname]["data"] = await self.json_request.get("chassis/1/Thermal/")
             self.thermal_info[self.hostname]["timestamp"] = time.time()
         return self.thermal_info[self.hostname]["data"]
 
