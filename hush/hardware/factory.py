@@ -140,7 +140,10 @@ class Factory:
                     if cls.drivers[host][group]["instance"] is not None:
                         instance = cls.drivers[host][group]["instance"]
                         logger.info(f"Closing hardware driver for {host}: {instance}")
-                        await instance.close()
+                        try:
+                            await instance.close()
+                        except Exception as e:
+                            logger.info(f"Failed to close hardware driver for {host}: {instance}")
         if host in cls.drivers:
             if group in cls.drivers[host]:
                 del cls.drivers[host][group]
