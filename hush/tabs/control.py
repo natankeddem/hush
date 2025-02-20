@@ -37,8 +37,10 @@ class Control(Tab):
                             ctrl_type = host(self.host).get("speed", "None")
                             if ctrl_type == "Dell iDRAC 9":
                                 iDrac9Control(self.host, sensor, column)
-                            elif ctrl_type == "Cisco M3" or ctrl_type == "Cisco M4" or ctrl_type == "Cisco M5":
-                                CiscoControl(self.host, sensor, column)
+                            elif ctrl_type == "Cisco M3" or ctrl_type == "Cisco M4":
+                                CiscoControlM3M4(self.host, sensor, column)
+                            elif ctrl_type == "Cisco M5":
+                                CiscoControlM5(self.host, sensor, column)
                             else:
                                 PwmControl(self.host, sensor, column)
 
@@ -285,7 +287,13 @@ class iDrac9Control(ModeControl):
         return ["Off", "Low", "Medium", "High", "Max"]
 
 
-class CiscoControl(ModeControl):
+class CiscoControlM3M4(ModeControl):
     @property
     def _modes(self):
         return ["Low Power", "Balanced", "Performance", "High Power", "Max Power"]
+
+
+class CiscoControlM5(ModeControl):
+    @property
+    def _modes(self):
+        return ["Acoustic", "Low Power", "Balanced", "High Power", "Max Power"]
