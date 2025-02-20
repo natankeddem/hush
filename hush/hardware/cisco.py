@@ -112,3 +112,61 @@ class M3(Device):
             logger.error(f"{self.hostname} failed to get cookie")
             logger.error(f"response = {response}")
             raise e
+
+
+class M4(M3):
+    pass
+
+
+class M5(M3):
+    class FanPolicy(IntEnum):
+        ACOUSTIC = 0
+        LOWPOWER = 1
+        BALANCED = 2
+        HIGHPOWER = 4
+        MAXIMUMPOWER = 5
+
+    async def set_speed(self, speed: Union[str, int, FanPolicy]) -> None:
+        self._speed = speed
+        if isinstance(speed, str):
+            policy_map = {
+                "Acoustic": self.FanPolicy.ACOUSTIC,
+                "Low Power": self.FanPolicy.LOWPOWER,
+                "Balanced": self.FanPolicy.BALANCED,
+                "High Power": self.FanPolicy.HIGHPOWER,
+                "Max Power": self.FanPolicy.MAXIMUMPOWER,
+            }
+            policy = policy_map[speed]
+        elif isinstance(speed, M5.FanPolicy):
+            policy = speed
+        elif isinstance(speed, int):
+            if speed < 25:
+                policy = self.FanPolicy.ACOUSTIC
+            elif speed < 50:
+                policy = self.FanPolicy.LOWPOWER
+            elif speed < 75:
+                policy = self.FanPolicy.BALANCED
+            elif speed < 100:
+                policy = self.FanPolicy.HIGHPOWER
+            else:
+                policy = self.FanPolicy.MAXIMUMPOWER
+        else:
+            policy = speed
+        policys = {
+            self.FanPolicy.ACOUSTIC: "Acoustic",
+            self.FanPolicy.LOWPOWER: "Low Power",
+            self.FanPolicy.BALANCED: "Balanced",
+            self.FanPolicy.HIGHPOWER: "High Power",
+            self.FanPolicy.MAXIMUMPOWER: "Maximum Power",
+        }
+        cookie = await self.cookie()
+        data = f"<configConfMo cookie='{cookie}' inHierarchical='false' dn='sys/rack-unit-1/board/fan-policy'><inConfig><fanPolicy configuredFanPolicy='{policys[policy]}' dn='sys/rack-unit-1/board/fan-policy'></fanPolicy></inConfig></configConfMo>"
+        try:
+            response = await self.xml_request.post(data)
+            status = response["configConfMo"]["@response"]
+            if status != "yes":
+                raise Exception
+        except Exception as e:
+            logger.error(f"{self.hostname} failed to set fan policy")
+            logger.error(f"response = {response}")
+            raise e

@@ -66,9 +66,9 @@ class Factory:
                 elif name == "Cisco M3":
                     cls.drivers[host][group]["instance"] = cisco.M3(host)
                 elif name == "Cisco M4":
-                    cls.drivers[host][group]["instance"] = cisco.M3(host)
+                    cls.drivers[host][group]["instance"] = cisco.M4(host)
                 elif name == "Cisco M5":
-                    cls.drivers[host][group]["instance"] = cisco.M3(host)
+                    cls.drivers[host][group]["instance"] = cisco.M5(host)
                 elif name == "OpenJBOD":
                     cls.drivers[host][group]["instance"] = openjbod.Rp2040(host)
                 else:
@@ -94,9 +94,9 @@ class Factory:
                 elif name == "Cisco M3":
                     cls.drivers[host][group]["instance"] = cisco.M3(host)
                 elif name == "Cisco M4":
-                    cls.drivers[host][group]["instance"] = cisco.M3(host)
+                    cls.drivers[host][group]["instance"] = cisco.M4(host)
                 elif name == "Cisco M5":
-                    cls.drivers[host][group]["instance"] = cisco.M3(host)
+                    cls.drivers[host][group]["instance"] = cisco.M5(host)
                 else:
                     cls.drivers[host][group]["instance"] = None
             if group == "pci":
