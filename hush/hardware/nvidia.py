@@ -22,3 +22,9 @@ class Gpu(Device):
             logger.info(f"{self.hostname} failed to get gpu temperature:")
             logger.info(f"result = {result}")
             raise e
+
+    async def set_speed(self, speed):
+        await self.ssh.shell(f'export DISPLAY=:0 && nvidia-settings -c $DISPLAY  -a "GPUFanControlState=1" -a "GPUTargetFanSpeed={speed}"')
+
+    async def close(self):
+        await self.ssh.shell('export DISPLAY=:0 && nvidia-settings -c $DISPLAY  -a "GPUFanControlState=0"')

@@ -45,6 +45,7 @@ speed_ctrl_names = [
     "Cisco M4",
     "Cisco M5",
     "OpenJBOD",
+    "Nvidia",
 ]
 drive_sensor_names = ["None", "SMART All", "SMART Discrete"]
 gpu_sensor_names = ["None", "Nvidia", "Supermicro"]

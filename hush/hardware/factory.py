@@ -71,6 +71,8 @@ class Factory:
                     cls.drivers[host][group]["instance"] = cisco.M5(host)
                 elif name == "OpenJBOD":
                     cls.drivers[host][group]["instance"] = openjbod.Rp2040(host)
+                elif name == "Nvidia":
+                    cls.drivers[host][group]["instance"] = nvidia.Gpu(host)
                 else:
                     cls.drivers[host][group]["instance"] = None
             if group == "cpu":
