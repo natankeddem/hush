@@ -24,9 +24,14 @@ class Gpu(Device):
             raise e
 
     async def set_speed(self, speed):
-        result = await self.ssh.execute(f'export DISPLAY=:0 && nvidia-settings -c $DISPLAY  -a "GPUFanControlState=1" -a "GPUTargetFanSpeed={speed}"')
-        if result.stdout.count("assigned value") != 2:
-            raise SystemError
+        try:
+            result = await self.ssh.execute(f'export DISPLAY=:0 && nvidia-settings -c $DISPLAY  -a "GPUFanControlState=1" -a "GPUTargetFanSpeed={speed}"')
+            if result.stdout.count("assigned value") != 2:
+                raise SystemError
+        except Exception as e:
+            logger.info(f"{self} failed to set speed.")
+            logger.info(f"result = {result}")
+            raise e
 
     async def close(self):
         await self.ssh.execute('export DISPLAY=:0 && nvidia-settings -c $DISPLAY  -a "GPUFanControlState=0"')
