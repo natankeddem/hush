@@ -32,6 +32,8 @@ for h in hosts:
         hosts[h]["smart"] = {}
     if "chassis" not in hosts[h]:
         hosts[h]["chassis"] = "None"
+    if "shared" not in hosts[h]:
+        hosts[h]["shared"] = {}
 
 
 def host(name: str) -> dict:

@@ -46,6 +46,7 @@ speed_ctrl_names = [
     "Cisco M5",
     "OpenJBOD",
     "Nvidia",
+    "Shared",
 ]
 drive_sensor_names = ["None", "SMART All", "SMART Discrete"]
 gpu_sensor_names = ["None", "Nvidia", "Supermicro"]
@@ -62,6 +63,7 @@ class Configure(Tab):
         self._skeleton = {}
         self._ilo4 = {}
         self._smart = {}
+        self._shared = {}
         self._add_selections()
 
     def _add_selections(self):
@@ -86,6 +88,8 @@ class Configure(Tab):
             self._skeleton["speed"].visible = False
             self._ilo4["speed"] = el.WRow()
             self._ilo4["speed"].visible = False
+            self._shared["speed"] = el.WRow()
+            self._shared["speed"].visible = False
             with el.WRow():
                 self._select["cpu"] = ui.select(
                     cpu_sensor_names,
@@ -98,6 +102,8 @@ class Configure(Tab):
             self._skeleton["cpu"].visible = False
             self._ilo4["cpu"] = el.WRow()
             self._ilo4["cpu"].visible = False
+            self._shared["cpu"] = el.WRow()
+            self._shared["cpu"].visible = False
             with el.WRow():
                 self._select["pci"] = ui.select(
                     pci_sensor_names,
@@ -110,6 +116,8 @@ class Configure(Tab):
             self._skeleton["pci"].visible = False
             self._ilo4["pci"] = el.WRow()
             self._ilo4["pci"].visible = False
+            self._shared["pci"] = el.WRow()
+            self._shared["pci"].visible = False
             with el.WRow():
                 self._select["drive"] = ui.select(
                     drive_sensor_names,
@@ -122,6 +130,8 @@ class Configure(Tab):
             self._skeleton["drive"].visible = False
             self._smart["drive"] = el.WRow()
             self._smart["drive"].visible = False
+            self._shared["drive"] = el.WRow()
+            self._shared["drive"].visible = False
             with el.WRow():
                 self._select["gpu"] = ui.select(
                     gpu_sensor_names,
@@ -130,6 +140,10 @@ class Configure(Tab):
                     on_change=lambda e: self._store_select("gpu", e.value),
                 ).classes("col")
                 el.LgButton("Test", on_click=lambda: self._test("gpu"))
+            self._skeleton["gpu"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
+            self._skeleton["gpu"].visible = False
+            self._shared["gpu"] = el.WRow()
+            self._shared["gpu"].visible = False
             with el.WRow():
                 self._select["chassis"] = ui.select(
                     chassis_sensor_names,
@@ -138,6 +152,10 @@ class Configure(Tab):
                     on_change=lambda e: self._store_select("chassis", e.value),
                 ).classes("col")
                 el.LgButton("Test", on_click=lambda: self._test("chassis"))
+            self._skeleton["chassis"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
+            self._skeleton["chassis"].visible = False
+            self._shared["chassis"] = el.WRow()
+            self._shared["chassis"].visible = False
             ui.timer(0, self._update_ctrls, once=True)
 
     async def _store_delay(self, value):
@@ -149,6 +167,7 @@ class Configure(Tab):
             del storage.host(self.host)["algo"]
         await self._build_ilo4_ctrl(group)
         await self._build_smart_ctrl()
+        await self._build_shared_ctrl(group)
         await Factory.close(self.host, group)
         self._control_rebuild()
 
@@ -201,15 +220,44 @@ class Configure(Tab):
         else:
             self._smart["drive"].visible = False
 
+    async def _build_shared_ctrl(self, group):
+        labels = {"speed": "Shared Speed Control Host"}
+        options = list(storage.hosts.keys())
+        options.remove(self.host)
+        if self._select[group].value == "Shared":
+            self._skeleton[group].visible = True
+            self._shared[group].bind_visibility_from(self._skeleton[group], value=False)
+            self._shared[group].clear()
+            if options:
+                with self._shared[group]:
+                    select = ui.select(
+                        options,
+                        label=labels[group],
+                        value=storage.host(self.host)["shared"].get(group, None),
+                        on_change=lambda e: self._store_select_shared(group, e.value),
+                    ).classes("col")
+                    if select.value is None:
+                        select.value = options[0]
+                self._skeleton[group].visible = False
+        else:
+            if group in self._ilo4:
+                self._shared[group].visible = False
+
     async def _update_ctrls(self):
+        groups = ["speed", "cpu", "pci", "drive", "gpu", "chassis"]
+        for group in groups:
+            if self._select[group].value == "Shared":
+                self._skeleton[group].visible = True
+        for group in groups:
+            await self._build_shared_ctrl(group)
         groups = ["speed", "cpu", "pci"]
         for group in groups:
             if self._select[group].value == "HP iLO 4 Discrete":
                 self._skeleton[group].visible = True
-        if self._select["drive"].value == "SMART Discrete":
-            self._skeleton["drive"].visible = True
         for group in groups:
             await self._build_ilo4_ctrl(group)
+        if self._select["drive"].value == "SMART Discrete":
+            self._skeleton["drive"].visible = True
         await self._build_smart_ctrl()
 
     async def _store_select_ilo4(self, group, value):
@@ -218,6 +266,10 @@ class Configure(Tab):
 
     async def _store_select_smart(self, group, value):
         storage.host(self.host)["smart"][group] = value
+        await Factory.close(self.host, group)
+
+    async def _store_select_shared(self, group, value):
+        storage.host(self.host)["shared"][group] = value
         await Factory.close(self.host, group)
 
     async def _test(self, group):

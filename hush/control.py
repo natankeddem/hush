@@ -25,15 +25,20 @@ class Launcher:
         self.busy = True
         hosts = list(storage.hosts.keys())
         for host in hosts:
-            delay = storage.host(host).get("delay", 30)
-            if host not in self.times:
-                elapsed_time = timedelta(seconds=delay)
-            else:
-                elapsed_time = dt.now() - self.times[host]
-            if delay is not None and delay > 0 and elapsed_time.seconds >= delay:
-                machine = Machine(host)
-                await machine.run()
-                self.times[host] = dt.now()
+            if not storage.host(host)["shared"].get("speed", None):
+                delay = storage.host(host).get("delay", 30)
+                if host not in self.times:
+                    elapsed_time = timedelta(seconds=delay)
+                else:
+                    elapsed_time = dt.now() - self.times[host]
+                shared_speed_hosts = []
+                for h in hosts:
+                    if host == storage.host(h)["shared"].get("speed", ""):
+                        shared_speed_hosts.append(h)
+                if delay is not None and delay > 0 and elapsed_time.seconds >= delay:
+                    machine = Machine(host=host, shared_speed_hosts=shared_speed_hosts)
+                    await machine.run()
+                    self.times[host] = dt.now()
         self.busy = False
 
     async def wait_on_not_busy(self) -> None:
@@ -42,8 +47,9 @@ class Launcher:
 
 
 class Machine:
-    def __init__(self, host) -> None:
+    def __init__(self, host: str, shared_speed_hosts: List[str]) -> None:
         self._host = host
+        self._shared_speed_hosts = shared_speed_hosts
 
     async def run(self):
         try:
@@ -75,43 +81,46 @@ class Machine:
             mqtt_device_info = DeviceInfo(name=self._host, identifiers=self._host)
             mqtt_active = True
         control = await Factory.driver(self._host, "speed")
-        for sensor in ["cpu", "pci", "drive", "gpu"]:
-            driver = await Factory.driver(self._host, sensor)
-            if driver is not None:
-                meas_temp = await driver.get_temp()
-                if mqtt_active:
-                    mqtt_names = {"cpu": "CPU Temperature", "pci": "PCI Temperature", "drive": "Drive Temperature", "gpu": "GPU Temperature"}
-                    mqtt_sensor_info = SensorInfo(
-                        name=mqtt_names[sensor],
-                        device_class="temperature",
-                        unique_id=f"hush_{self._host.replace(' ','_')}_{sensor}_temperature",
-                        unit_of_measurement="°C",
-                        device=mqtt_device_info,
-                    )
-                    mqtt_sensor_settings = Settings(mqtt=mqtt_settings, entity=mqtt_sensor_info)
-                    mqtt_sensor = Sensor(mqtt_sensor_settings)
-                    mqtt_sensor.set_state(meas_temp)
-                temperatures[sensor] = meas_temp
-                if control is not None:
-                    if storage.algo_sensor(self._host, sensor)["type"] == "pid":
-                        pid = Pid(self._host, sensor)
-                        speed = round(-1 * pid.controller(meas_temp))
-                        logger.debug(f"{control.hostname} Temperature={meas_temp} Speed={speed}")
-                    else:
-                        curve = Curve(self._host, sensor)
-                        speed = curve.calc(meas_temp)
-                        logger.debug(f"{control.hostname} Temperature={meas_temp} Speed={speed} Speeds={curve.speeds}")
-                if speed is not None:
-                    if isinstance(speed, str) is True:
-                        current_speed = curve.speeds.index(speed)
-                    else:
-                        current_speed = speed
-                    if highest_speed is None or current_speed > highest_speed:
-                        highest_speed = current_speed
-                        if isinstance(speed, str) is True:
-                            final_speed = curve.speeds[highest_speed]
+        hosts = self._shared_speed_hosts
+        hosts.append(self._host)
+        for host in hosts:
+            for sensor in ["cpu", "pci", "drive", "gpu", "chassis"]:
+                driver = await Factory.driver(host, sensor)
+                if driver is not None:
+                    meas_temp = await driver.get_temp()
+                    if mqtt_active:
+                        mqtt_names = {"cpu": "CPU Temperature", "pci": "PCI Temperature", "drive": "Drive Temperature", "gpu": "GPU Temperature", "chassis": "Chassis Temperature"}
+                        mqtt_sensor_info = SensorInfo(
+                            name=mqtt_names[sensor],
+                            device_class="temperature",
+                            unique_id=f"hush_{host.replace(' ','_')}_{sensor}_temperature",
+                            unit_of_measurement="°C",
+                            device=mqtt_device_info,
+                        )
+                        mqtt_sensor_settings = Settings(mqtt=mqtt_settings, entity=mqtt_sensor_info)
+                        mqtt_sensor = Sensor(mqtt_sensor_settings)
+                        mqtt_sensor.set_state(meas_temp)
+                    temperatures[sensor] = meas_temp
+                    if control is not None:
+                        if storage.algo_sensor(host, sensor)["type"] == "pid":
+                            pid = Pid(host, sensor)
+                            speed = round(-1 * pid.controller(meas_temp))
+                            logger.debug(f"{host} Temperature={meas_temp} Speed={speed}")
                         else:
-                            final_speed = highest_speed
+                            curve = Curve(host, sensor)
+                            speed = curve.calc(meas_temp)
+                            logger.debug(f"{host} Temperature={meas_temp} Speed={speed} Speeds={curve.speeds}")
+                    if speed is not None:
+                        if isinstance(speed, str) is True:
+                            current_speed = curve.speeds.index(speed)
+                        else:
+                            current_speed = speed
+                        if highest_speed is None or current_speed > highest_speed:
+                            highest_speed = current_speed
+                            if isinstance(speed, str) is True:
+                                final_speed = curve.speeds[highest_speed]
+                            else:
+                                final_speed = highest_speed
         if final_speed is not None:
             if mqtt_active:
                 unit_of_measurement = None
@@ -123,18 +132,20 @@ class Machine:
                 mqtt_speed_settings = Settings(mqtt=mqtt_settings, entity=mqtt_speed_info)
                 mqtt_speed = Sensor(mqtt_speed_settings)
                 mqtt_speed.set_state(final_speed)
-            logger.info(f"{control.hostname} Temperature={meas_temp} -> Fan Speed={final_speed}")
+            logger.info(f"{control.hostname} Fan Speed={final_speed}")
             await control.set_speed(final_speed)
-            status = Status(
-                host=self._host,
-                status=True,
-                speed=highest_speed,
-                temperatures=temperatures,
-            )
-            status.submit()
+            for host in hosts:
+                status = Status(
+                    host=host,
+                    status=True,
+                    speed=highest_speed,
+                    temperatures=temperatures,
+                )
+                status.submit()
         else:
-            status = Status(host=self._host)
-            status.submit()
+            for host in hosts:
+                status = Status(host=self._host)
+                status.submit()
 
 
 class Curve:

@@ -37,6 +37,9 @@ class Factory:
         group: str,
     ) -> Optional[hardware.Device]:
         name = storage.host(host).get(group, "None")
+        if name == "Shared":
+            host = storage.host(host)["shared"][group]
+            name = storage.host(host).get(group, "None")
         if host not in cls.drivers:
             cls.drivers[host] = {}
         if group not in cls.drivers[host]:

@@ -34,7 +34,11 @@ class Control(Tab):
                 with control_panels:
                     with ui.tab_panel(tab).classes("w-full"):
                         with ui.column().classes("w-full flex-center") as column:
+                            ctrl_host = self.host
                             ctrl_type = host(self.host).get("speed", "None")
+                            if ctrl_type == "Shared":
+                                ctrl_host = host(self.host)["shared"]["speed"]
+                                ctrl_type = host(ctrl_host).get("speed", "None")
                             if ctrl_type == "Dell iDRAC 9":
                                 iDrac9Control(self.host, sensor, column)
                             elif ctrl_type == "Cisco M3" or ctrl_type == "Cisco M4":
