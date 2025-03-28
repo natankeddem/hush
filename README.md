@@ -7,14 +7,14 @@
 
 **Improper setup or bugs in this software may overheat your system!**
 
-**This utility is still in early developement and may require breaking changes on updates. Your configuration may be lost on such updates and your fans will not long be controlled. Care must be taken when using watchtower or similar tools to update this utility.**
+**This utility is still in early developement and may require breaking changes on updates. Your configuration may be lost on such updates and your fans will no longer be controlled. Care must be taken when using watchtower or similar tools to update this utility.**
 
 ## Information
 GUI enabled Docker based fan controller. I appreciate all comments/feedback/bug reports.
 
 ## Features
 * Single container controls multiple machines at once.
-* Temperature calculation takes into account CPUs, Drives and GPUs.
+* Temperature calculation takes into account CPUs, Drives and GPUs and more sensors.
 * Full GUI configuration, no YAML or INI file editing required.
 * Allows monitoring of temperatures and fan speeds.
 * Transmits MQTT sensor data to external message brokers, includes support for Home Assistant MQTT discovery.
