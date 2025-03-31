@@ -24,7 +24,7 @@ GUI enabled Docker based fan controller. I appreciate all comments/feedback/bug 
 | Driver         | Credentials | Temperature | Fan Control | Notes                            |
 |----------------|-------------|-------------|-------------|----------------------------------|
 | iDRAC7         | OOB         | IPMI        | IPMI        |                                  |
-| iDRAC8         | OOB         | IPMI        | IMPI        |                                  |
+| iDRAC8         | OOB         | IPMI        | IMPI        | also for iDRAC 9 3.30.30.30 and earlier                                  |
 | iDRAC9         | OOB         | Redfish     | RedFish     | offset control only              |
 | iLO4           | OOB         | Redfish     | Proprietary | must be running unlocked version |
 | Supermicro X9  | OOB         | IPMI        | IPMI        |                                  |
