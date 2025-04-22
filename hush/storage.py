@@ -62,6 +62,7 @@ def host(name: str) -> dict:
             "algo": {},
             "ilo4": {},
             "smart": {},
+            "shared": {},
         }
     return hosts[name]
 
