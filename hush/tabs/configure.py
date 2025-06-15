@@ -39,8 +39,10 @@ speed_ctrl_names = [
     "HP iLO 4 All",
     "HP iLO 4 Discrete",
     "Supermicro X9",
-    "Supermicro X10",
-    "Supermicro X11",
+    "Supermicro X10 All",
+    "Supermicro X10 Discrete",
+    "Supermicro X11 All",
+    "Supermicro X11 Discrete",
     "Cisco M3",
     "Cisco M4",
     "Cisco M5",
@@ -64,6 +66,7 @@ class Configure(Tab):
         self._ilo4 = {}
         self._smart = {}
         self._shared = {}
+        self._supermicro = {}
         self._add_selections()
 
     def _add_selections(self):
@@ -90,6 +93,8 @@ class Configure(Tab):
             self._ilo4["speed"].visible = False
             self._shared["speed"] = el.WRow()
             self._shared["speed"].visible = False
+            self._supermicro["speed"] = el.WRow()
+            self._supermicro["speed"].visible = False
             with el.WRow():
                 self._select["cpu"] = ui.select(
                     cpu_sensor_names,
@@ -168,6 +173,7 @@ class Configure(Tab):
         await self._build_ilo4_ctrl(group)
         await self._build_smart_ctrl()
         await self._build_shared_ctrl(group)
+        await self._build_supermicro_ctrl(group)
         await Factory.close(self.host, group)
         self._control_rebuild()
 
@@ -243,6 +249,29 @@ class Configure(Tab):
             if group in self._ilo4:
                 self._shared[group].visible = False
 
+    async def _build_supermicro_ctrl(self, group):
+        if self._select[group].value == "Supermicro X10 Discrete" or self._select[group].value == "Supermicro X11 Discrete":
+            self._skeleton[group].visible = True
+            self._supermicro[group].bind_visibility_from(self._skeleton[group], value=False)
+            labels = {"speed": "Supermicro Fan Zones"}
+            self._supermicro[group].clear()
+            with self._supermicro[group]:
+                if group == "speed":
+                    options = ["00", "01", "02", "03"]
+                else:
+                    options = []
+                ui.select(
+                    options,
+                    label=labels[group],
+                    value=storage.host(self.host)["supermicro"].get(group, []),
+                    on_change=lambda e: self._store_select_supermicro(group, e.value),
+                    multiple=True,
+                ).classes("col")
+            self._skeleton[group].visible = False
+        else:
+            if group in self._supermicro:
+                self._supermicro[group].visible = False
+
     async def _update_ctrls(self):
         groups = ["speed", "cpu", "pci", "drive", "gpu", "chassis"]
         for group in groups:
@@ -252,12 +281,11 @@ class Configure(Tab):
             await self._build_shared_ctrl(group)
         groups = ["speed", "cpu", "pci"]
         for group in groups:
-            if self._select[group].value == "HP iLO 4 Discrete":
+            if "Discrete" in self._select[group].value:
                 self._skeleton[group].visible = True
         for group in groups:
             await self._build_ilo4_ctrl(group)
-        if self._select["drive"].value == "SMART Discrete":
-            self._skeleton["drive"].visible = True
+            await self._build_supermicro_ctrl(group)
         await self._build_smart_ctrl()
 
     async def _store_select_ilo4(self, group, value):
@@ -270,6 +298,10 @@ class Configure(Tab):
 
     async def _store_select_shared(self, group, value):
         storage.host(self.host)["shared"][group] = value
+        await Factory.close(self.host, group)
+
+    async def _store_select_supermicro(self, group, value):
+        storage.host(self.host)["supermicro"][group] = value
         await Factory.close(self.host, group)
 
     async def _test(self, group):

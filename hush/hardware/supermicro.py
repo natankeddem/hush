@@ -15,11 +15,12 @@ class X9(Device):
         OPTIMAL = 2
         HEAVYIO = 4
 
-    def __init__(self, host: str) -> None:
+    def __init__(self, host: str, speed_zones=["0x10", "0x11"]) -> None:
         super().__init__(host)
         self.get_oob_credentials()
         self._fan_mode: Optional[X9.FanMode] = None
         self.fru: Optional[dict] = None
+        self.speed_zones = speed_zones
 
     async def close(self):
         await self.set_fan_mode(self.FanMode.STANDARD)
@@ -59,8 +60,8 @@ class X9(Device):
         await self.set_fan_mode(self.FanMode.FULL)
         if speed != self._speed:
             pwm = hex(int(speed / (100 / 255)))
-            await self.ipmi.execute(f"raw 0x30 0x91 0x5A 0x03 0x10 {pwm}")
-            await self.ipmi.execute(f"raw 0x30 0x91 0x5A 0x03 0x11 {pwm}")
+            for zone in self.speed_zones:
+                await self.ipmi.execute(f"raw 0x30 0x91 0x5A 0x03 {zone} {pwm}")
             self._speed = speed
 
     async def board_part_number(self) -> str:
@@ -76,16 +77,24 @@ class X9(Device):
 
 
 class X10(X9):
+    def __init__(self, host, speed_zones=None):
+        super().__init__(host, speed_zones)
+
+    async def get_speed_zones(self):
+        board_part_number = await self.board_part_number()
+        if self.speed_zones:
+            return self.speed_zones
+        else:
+            if "X10DRG" in board_part_number:
+                return ["00", "01", "02", "03"]
+            else:
+                return ["00", "01"]
+
     async def set_speed(self, speed):
         await self.set_fan_mode(self.FanMode.FULL)
         if speed != self._speed:
             pwm = hex(int(speed / (100 / 255)))
-            board_part_number = await self.board_part_number()
-            if "X10DRG" in board_part_number:
-                zones = ["00", "01", "02", "03"]
-            else:
-                zones = ["00", "01"]
-            for zone in zones:
+            for zone in await self.get_speed_zones():
                 await self.ipmi.execute(f"raw 0x30 0x70 0x66 0x01 0x{zone} {pwm}")
             self._speed = speed
 

@@ -62,10 +62,14 @@ class Factory:
                     cls.drivers[host][group]["instance"] = ilo.iLO4(host, fans=storage.host(host)["ilo4"].get(group, []))
                 elif name == "Supermicro X9":
                     cls.drivers[host][group]["instance"] = supermicro.X9(host)
-                elif name == "Supermicro X10":
+                elif name == "Supermicro X10 All":
                     cls.drivers[host][group]["instance"] = supermicro.X10(host)
-                elif name == "Supermicro X11":
+                elif name == "Supermicro X10 Discrete":
+                    cls.drivers[host][group]["instance"] = supermicro.X10(host, speed_zones=storage.host(host)["supermicro"].get(group, []))
+                elif name == "Supermicro X11 All":
                     cls.drivers[host][group]["instance"] = supermicro.X11(host)
+                elif name == "Supermicro X11 Discrete":
+                    cls.drivers[host][group]["instance"] = supermicro.X11(host, speed_zones=storage.host(host)["supermicro"].get(group, []))
                 elif name == "Cisco M3":
                     cls.drivers[host][group]["instance"] = cisco.M3(host)
                 elif name == "Cisco M4":

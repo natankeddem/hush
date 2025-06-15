@@ -26,6 +26,12 @@ for h in hosts:
     if "drive" in hosts[h]:
         if hosts[h]["drive"] == "SMART":
             hosts[h]["drive"] = "SMART All"
+    if "speed" in hosts[h]:
+        if hosts[h]["speed"] == "Supermicro X10":
+            hosts[h]["speed"] = "Supermicro X10 All"
+    if "speed" in hosts[h]:
+        if hosts[h]["speed"] == "Supermicro X11":
+            hosts[h]["speed"] = "Supermicro X11 All"
     if "ilo4" not in hosts[h]:
         hosts[h]["ilo4"] = {}
     if "smart" not in hosts[h]:
@@ -34,6 +40,8 @@ for h in hosts:
         hosts[h]["chassis"] = "None"
     if "shared" not in hosts[h]:
         hosts[h]["shared"] = {}
+    if "supermicro" not in hosts[h]:
+        hosts[h]["supermicro"] = {}
 
 
 def host(name: str) -> dict:
