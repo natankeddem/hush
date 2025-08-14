@@ -415,3 +415,8 @@ class Upload(ui.upload):
         self.on("cancel", lambda: handle_event(callback, UiEventArguments(sender=self, client=self.client)), args=[])
         return self
 
+
+class Help(ui.element):
+    def __init__(self, text: str) -> None:
+        with LgButton(icon="help"):
+            ui.tooltip(text).props("max-width='400px'")

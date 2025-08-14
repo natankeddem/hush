@@ -89,6 +89,11 @@ class Configure(Tab):
             ui.button("Import", on_click=lambda _: self.handle_import_select(upload))
             ui.button("Export", on_click=self.handle_export)
         with el.WRow():
+            el.Help(
+                "Sets the minimum time in seconds that must pass before the fan speed can be changed again. "
+                "This helps to prevent rapid, frequent fan speed adjustments. "
+                "Actual delay may be slightly longer due to system processing time."
+            )
             ui.number(
                 "Delay",
                 value=storage.host(self.host).get("delay", 30),
