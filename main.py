@@ -23,6 +23,7 @@ if __name__ in {"__main__", "__mp_main__"}:
     ui.card.default_style("max-width: none")
     ui.card.default_props("flat bordered")
     ui.input.default_props("outlined dense hide-bottom-space")
+    ui.number.default_props("outlined dense hide-bottom-space")
     ui.button.default_props("outline dense")
     ui.select.default_props("outlined dense dense-options")
     ui.checkbox.default_props("dense")
