@@ -1,7 +1,8 @@
 from typing import Any, Dict, List, Union
-from asyncio import run
+import asyncio
 from copy import copy, deepcopy
-from nicegui import ui  # type: ignore
+import json
+from nicegui import ui, events  # type: ignore
 from . import Tab
 import hush.elements as el
 from hush import storage
@@ -67,101 +68,115 @@ class Configure(Tab):
         self._smart = {}
         self._shared = {}
         self._supermicro = {}
-        self._add_selections()
+        with ui.dialog() as self.import_verify, el.Card():
+            self.import_verify.props("persistent")
+            el.BigLabel("Overwrite all drivers and curves?")
+            with el.WRow():
+                el.LgButton("Yes", on_click=lambda: self.import_verify.submit("yes")).tailwind().flex("1")
+                el.LgButton("No", on_click=lambda: self.import_verify.submit("no")).tailwind().flex("1")
+        with ui.dialog() as self.import_spinner:
+            self.import_spinner.props("persistent")
+            ui.spinner("tail", size="300px", color="orange")
+        with ui.column() as self.selection_container:
+            self.selection_container.tailwind.align_items("center").align_self("center")
+            self.selection_container.tailwind.width("1/2")
+            self._add_selections()
 
     def _add_selections(self):
-        with ui.column() as col:
-            col.tailwind.align_items("center").align_self("center")
-            col.tailwind.width("1/2")
-            with el.WRow():
-                ui.number(
-                    "Delay",
-                    value=storage.host(self.host).get("delay", 30),
-                    on_change=lambda e: self._store_delay(e.value),
-                ).classes("col")
-            with el.WRow():
-                self._select["speed"] = ui.select(
-                    speed_ctrl_names,
-                    label="Speed Controller",
-                    value=storage.host(self.host).get("speed", speed_ctrl_names[0]),
-                    on_change=lambda e: self._store_select("speed", e.value),
-                ).classes("col")
-                el.LgButton("Test", on_click=lambda: self._test("speed"))
-            self._skeleton["speed"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
-            self._skeleton["speed"].visible = False
-            self._ilo4["speed"] = el.WRow()
-            self._ilo4["speed"].visible = False
-            self._shared["speed"] = el.WRow()
-            self._shared["speed"].visible = False
-            self._supermicro["speed"] = el.WRow()
-            self._supermicro["speed"].visible = False
-            with el.WRow():
-                self._select["cpu"] = ui.select(
-                    cpu_sensor_names,
-                    label="CPU Temperature Sensor",
-                    value=storage.host(self.host).get("cpu", cpu_sensor_names[0]),
-                    on_change=lambda e: self._store_select("cpu", e.value),
-                ).classes("col")
-                el.LgButton("Test", on_click=lambda: self._test("cpu"))
-            self._skeleton["cpu"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
-            self._skeleton["cpu"].visible = False
-            self._ilo4["cpu"] = el.WRow()
-            self._ilo4["cpu"].visible = False
-            self._shared["cpu"] = el.WRow()
-            self._shared["cpu"].visible = False
-            with el.WRow():
-                self._select["pci"] = ui.select(
-                    pci_sensor_names,
-                    label="PCI Temperature Sensor",
-                    value=storage.host(self.host).get("pci", pci_sensor_names[0]),
-                    on_change=lambda e: self._store_select("pci", e.value),
-                ).classes("col")
-                el.LgButton("Test", on_click=lambda: self._test("pci"))
-            self._skeleton["pci"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
-            self._skeleton["pci"].visible = False
-            self._ilo4["pci"] = el.WRow()
-            self._ilo4["pci"].visible = False
-            self._shared["pci"] = el.WRow()
-            self._shared["pci"].visible = False
-            with el.WRow():
-                self._select["drive"] = ui.select(
-                    drive_sensor_names,
-                    label="Drive Temperature Sensor",
-                    value=storage.host(self.host).get("drive", drive_sensor_names[0]),
-                    on_change=lambda e: self._store_select("drive", e.value),
-                ).classes("col")
-                el.LgButton("Test", on_click=lambda: self._test("drive"))
-            self._skeleton["drive"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
-            self._skeleton["drive"].visible = False
-            self._smart["drive"] = el.WRow()
-            self._smart["drive"].visible = False
-            self._shared["drive"] = el.WRow()
-            self._shared["drive"].visible = False
-            with el.WRow():
-                self._select["gpu"] = ui.select(
-                    gpu_sensor_names,
-                    label="GPU Temperature Sensor",
-                    value=storage.host(self.host).get("gpu", gpu_sensor_names[0]),
-                    on_change=lambda e: self._store_select("gpu", e.value),
-                ).classes("col")
-                el.LgButton("Test", on_click=lambda: self._test("gpu"))
-            self._skeleton["gpu"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
-            self._skeleton["gpu"].visible = False
-            self._shared["gpu"] = el.WRow()
-            self._shared["gpu"].visible = False
-            with el.WRow():
-                self._select["chassis"] = ui.select(
-                    chassis_sensor_names,
-                    label="Chassis Temperature Sensor",
-                    value=storage.host(self.host).get("chassis", chassis_sensor_names[0]),
-                    on_change=lambda e: self._store_select("chassis", e.value),
-                ).classes("col")
-                el.LgButton("Test", on_click=lambda: self._test("chassis"))
-            self._skeleton["chassis"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
-            self._skeleton["chassis"].visible = False
-            self._shared["chassis"] = el.WRow()
-            self._shared["chassis"].visible = False
-            ui.timer(0, self._update_ctrls, once=True)
+        with el.WRow():
+            upload = el.Upload(on_upload=self.handle_import_upload, on_cancelled=self.handle_import_cancelled, auto_upload=True)
+            upload.props("accept=.json").classes("hidden")
+            ui.button("Import", on_click=lambda _: self.handle_import_select(upload))
+            ui.button("Export", on_click=self.handle_export)
+        with el.WRow():
+            ui.number(
+                "Delay",
+                value=storage.host(self.host).get("delay", 30),
+                on_change=lambda e: self._store_delay(e.value),
+            ).classes("col")
+        with el.WRow():
+            self._select["speed"] = ui.select(
+                speed_ctrl_names,
+                label="Speed Controller",
+                value=storage.host(self.host).get("speed", speed_ctrl_names[0]),
+                on_change=lambda e: self._store_select("speed", e.value),
+            ).classes("col")
+            el.LgButton("Test", on_click=lambda: self._test("speed"))
+        self._skeleton["speed"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
+        self._skeleton["speed"].visible = False
+        self._ilo4["speed"] = el.WRow()
+        self._ilo4["speed"].visible = False
+        self._shared["speed"] = el.WRow()
+        self._shared["speed"].visible = False
+        self._supermicro["speed"] = el.WRow()
+        self._supermicro["speed"].visible = False
+        with el.WRow():
+            self._select["cpu"] = ui.select(
+                cpu_sensor_names,
+                label="CPU Temperature Sensor",
+                value=storage.host(self.host).get("cpu", cpu_sensor_names[0]),
+                on_change=lambda e: self._store_select("cpu", e.value),
+            ).classes("col")
+            el.LgButton("Test", on_click=lambda: self._test("cpu"))
+        self._skeleton["cpu"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
+        self._skeleton["cpu"].visible = False
+        self._ilo4["cpu"] = el.WRow()
+        self._ilo4["cpu"].visible = False
+        self._shared["cpu"] = el.WRow()
+        self._shared["cpu"].visible = False
+        with el.WRow():
+            self._select["pci"] = ui.select(
+                pci_sensor_names,
+                label="PCI Temperature Sensor",
+                value=storage.host(self.host).get("pci", pci_sensor_names[0]),
+                on_change=lambda e: self._store_select("pci", e.value),
+            ).classes("col")
+            el.LgButton("Test", on_click=lambda: self._test("pci"))
+        self._skeleton["pci"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
+        self._skeleton["pci"].visible = False
+        self._ilo4["pci"] = el.WRow()
+        self._ilo4["pci"].visible = False
+        self._shared["pci"] = el.WRow()
+        self._shared["pci"].visible = False
+        with el.WRow():
+            self._select["drive"] = ui.select(
+                drive_sensor_names,
+                label="Drive Temperature Sensor",
+                value=storage.host(self.host).get("drive", drive_sensor_names[0]),
+                on_change=lambda e: self._store_select("drive", e.value),
+            ).classes("col")
+            el.LgButton("Test", on_click=lambda: self._test("drive"))
+        self._skeleton["drive"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
+        self._skeleton["drive"].visible = False
+        self._smart["drive"] = el.WRow()
+        self._smart["drive"].visible = False
+        self._shared["drive"] = el.WRow()
+        self._shared["drive"].visible = False
+        with el.WRow():
+            self._select["gpu"] = ui.select(
+                gpu_sensor_names,
+                label="GPU Temperature Sensor",
+                value=storage.host(self.host).get("gpu", gpu_sensor_names[0]),
+                on_change=lambda e: self._store_select("gpu", e.value),
+            ).classes("col")
+            el.LgButton("Test", on_click=lambda: self._test("gpu"))
+        self._skeleton["gpu"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
+        self._skeleton["gpu"].visible = False
+        self._shared["gpu"] = el.WRow()
+        self._shared["gpu"].visible = False
+        with el.WRow():
+            self._select["chassis"] = ui.select(
+                chassis_sensor_names,
+                label="Chassis Temperature Sensor",
+                value=storage.host(self.host).get("chassis", chassis_sensor_names[0]),
+                on_change=lambda e: self._store_select("chassis", e.value),
+            ).classes("col")
+            el.LgButton("Test", on_click=lambda: self._test("chassis"))
+        self._skeleton["chassis"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
+        self._skeleton["chassis"].visible = False
+        self._shared["chassis"] = el.WRow()
+        self._shared["chassis"].visible = False
+        ui.timer(0, self._update_ctrls, once=True)
 
     async def _store_delay(self, value):
         storage.host(self.host)["delay"] = value
@@ -303,6 +318,39 @@ class Configure(Tab):
     async def _store_select_supermicro(self, group, value):
         storage.host(self.host)["supermicro"][group] = value
         await Factory.close(self.host, group)
+
+    async def handle_import_select(self, upload: ui.upload):
+        result = await self.import_verify
+        if result == "yes":
+            self.import_spinner.open()
+            upload.run_method("pickFiles")
+
+    async def handle_import_cancelled(self, e: events.UiEventArguments):
+        self.import_spinner.close()
+
+    async def handle_import_upload(self, e: events.UploadEventArguments):
+        try:
+            content = json.loads(e.content.read().decode("utf-8"))
+        except json.JSONDecodeError as e:
+            logger.error(f"Import decoding error: {e}")
+        except Exception as e:
+            logger.error(f"Import error occurred: {e}")
+        if content:
+            storage.host(self.host).update(deepcopy(content))
+            self.selection_container.clear()
+            with self.selection_container:
+                self._add_selections()
+            self._control_rebuild()
+        self.import_spinner.close()
+
+    async def handle_export(self):
+        host_data = deepcopy(storage.host(self.host))
+        for key in ["oob", "os", "mqtt"]:
+            if key in host_data:
+                del host_data[key]
+        export_data = json.dumps(host_data)
+        filename = "".join([i for i in self.host if i.isalpha()])
+        ui.download.content(export_data, f"{filename}.json")
 
     async def _test(self, group):
         device = None

@@ -6,7 +6,7 @@ from nicegui.elements.tabs import Tab  # type: ignore
 from nicegui.tailwind_types.height import Height  # type: ignore
 from nicegui.tailwind_types.width import Width  # type: ignore
 from nicegui.elements.mixins.validation_element import ValidationElement  # type: ignore
-from nicegui.events import GenericEventArguments, handle_event  # type: ignore
+from nicegui.events import Handler, UiEventArguments, GenericEventArguments, handle_event  # type: ignore
 from hush.interfaces import cli
 import logging
 
@@ -371,3 +371,47 @@ class ContentTabPanel(ui.tab_panel):
         super().__init__(name)
         self.style("height: calc(100vh - 150px)")
         self.tailwind.min_width("[920px]")
+
+
+class BigLabel(ui.label):
+    def __init__(self, text: str = "") -> None:
+        super().__init__(text)
+        self.tailwind.text_color(f"[{orange}]").text_align("center").font_size("2xl").font_weight("bold")
+
+
+class Upload(ui.upload):
+    def __init__(
+        self,
+        *,
+        multiple=False,
+        max_file_size=None,
+        max_total_size=None,
+        max_files=None,
+        on_begin_upload=None,
+        on_upload=None,
+        on_multi_upload=None,
+        on_rejected=None,
+        on_cancelled=None,
+        label="",
+        auto_upload=False,
+    ):
+        super().__init__(
+            multiple=multiple,
+            max_file_size=max_file_size,
+            max_total_size=max_total_size,
+            max_files=max_files,
+            on_begin_upload=on_begin_upload,
+            on_upload=on_upload,
+            on_multi_upload=on_multi_upload,
+            on_rejected=on_rejected,
+            label=label,
+            auto_upload=auto_upload,
+        )
+        if on_cancelled:
+            self.on_cancelled(on_cancelled)
+
+    def on_cancelled(self, callback: Handler[UiEventArguments]):
+        """Add a callback to be invoked when the upload is cancelled."""
+        self.on("cancel", lambda: handle_event(callback, UiEventArguments(sender=self, client=self.client)), args=[])
+        return self
+
