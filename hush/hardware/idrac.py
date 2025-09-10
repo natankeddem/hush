@@ -1,7 +1,7 @@
 import logging
 
 logger = logging.getLogger(__name__)
-from typing import Optional
+from typing import Any, List, Optional
 from enum import IntEnum
 import json
 import re
@@ -100,9 +100,11 @@ class Ipmi(Device):
         MANUAL = 0
         IDRAC = 1
 
-    def __init__(self, host: str) -> None:
+    def __init__(self, host: str, sensor_names: List[str] = ["Temp"], sensor_function: Any = np.max) -> None:
         super().__init__(host)
         self.get_oob_credentials()
+        self.sensor_names = sensor_names
+        self.sensor_function = sensor_function
         self._fan_mode = self.FanMode.IDRAC
 
     async def close(self) -> None:
@@ -115,20 +117,21 @@ class Ipmi(Device):
         else:
             self._fan_mode = mode
 
-    async def get_temp(self, core=None):
-        cpu_temps = list()
+    async def get_temp(self):
+        sensor_temps = []
         response = None
         try:
             response = await self.ipmi.execute("-c sdr")
             data_lines = response.stdout_lines
             for data in data_lines:
                 data = data.split(",")
-                if data[0] == "Temp" and data[1] != "":
-                    cpu_temps.append(float(data[1]))
-            if core is None:
-                self._temp = int(np.max(cpu_temps))
+                for name in self.sensor_names:
+                    if data[0] == name and data[1] != "":
+                        sensor_temps.append(float(data[1]))
+            if isinstance(self.sensor_function, int):
+                self._temp = sensor_temps[self.sensor_function]
             else:
-                self._temp = cpu_temps[core]
+                self._temp = int(self.sensor_function(sensor_temps))
             return self._temp
         except Exception as e:
             if response is not None:
