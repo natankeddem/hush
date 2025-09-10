@@ -2,6 +2,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 from typing import Literal, Optional
+import numpy as np
 from hush import storage
 from hush import hardware
 from hush.hardware import cisco
@@ -133,6 +134,14 @@ class Factory:
             if group == "chassis":
                 if name == "OpenJBOD":
                     cls.drivers[host][group]["instance"] = openjbod.Rp2040(host)
+                elif name == "Dell iDRAC 7" or name == "Dell iDRAC 8":
+                    sensors = {
+                        "Inlet": {"names": ["Inlet Temp"], "function": np.max},
+                        "Exhaust": {"names": ["Exhaust Temp"], "function": np.max},
+                        "Exhaust - Inlet": {"names": ["Exhaust Temp", "Inlet Temp"], "function": np.subtract},
+                    }
+                    selection = storage.host(host)["idrac"].get(group, "Inlet")
+                    cls.drivers[host][group]["instance"] = idrac.Ipmi(host, sensor_names=sensors[selection]["names"], sensor_function=sensors[selection]["function"])
                 else:
                     cls.drivers[host][group]["instance"] = None
         return cls.drivers[host][group]["instance"]
