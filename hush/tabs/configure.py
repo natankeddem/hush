@@ -53,7 +53,7 @@ speed_ctrl_names = [
 ]
 drive_sensor_names = ["None", "SMART All", "SMART Discrete"]
 gpu_sensor_names = ["None", "Nvidia", "Supermicro"]
-chassis_sensor_names = ["None", "OpenJBOD"]
+chassis_sensor_names = ["None", "Dell iDRAC 7", "Dell iDRAC 8", "OpenJBOD"]
 
 
 class Configure(Tab):
@@ -68,6 +68,7 @@ class Configure(Tab):
         self._smart = {}
         self._shared = {}
         self._supermicro = {}
+        self._idrac = {}
         with ui.dialog() as self.import_verify, el.Card():
             self.import_verify.props("persistent")
             el.BigLabel("Overwrite all drivers and curves?")
@@ -179,6 +180,8 @@ class Configure(Tab):
             el.LgButton("Test", on_click=lambda: self._test("chassis"))
         self._skeleton["chassis"] = ui.skeleton(type="QInput", height="40px").classes("w-full")
         self._skeleton["chassis"].visible = False
+        self._idrac["chassis"] = el.WRow()
+        self._idrac["chassis"].visible = False
         self._shared["chassis"] = el.WRow()
         self._shared["chassis"].visible = False
         ui.timer(0, self._update_ctrls, once=True)
@@ -192,6 +195,7 @@ class Configure(Tab):
             del storage.host(self.host)["algo"]
         await self._build_ilo4_ctrl(group)
         await self._build_smart_ctrl()
+        await self._build_idrac_ctrl()
         await self._build_shared_ctrl(group)
         await self._build_supermicro_ctrl(group)
         await Factory.close(self.host, group)
@@ -243,6 +247,24 @@ class Configure(Tab):
                     multiple=True,
                 ).classes("col")
             self._skeleton["drive"].visible = False
+        else:
+            self._smart["drive"].visible = False
+
+    async def _build_idrac_ctrl(self):
+        if self._select["chassis"].value == "Dell iDRAC 7" or self._select["chassis"].value == "Dell iDRAC 8":
+            self._skeleton["chassis"].visible = True
+            self._idrac["chassis"].bind_visibility_from(self._skeleton["chassis"], value=False)
+            self._idrac["chassis"].clear()
+            with self._idrac["chassis"]:
+                await Factory.close(self.host, "chassis")
+                options = ["Inlet", "Exhaust", "Exhaust - Inlet"]
+                ui.select(
+                    options,
+                    label="iDRAC Chassis Sensors",
+                    value=storage.host(self.host)["idrac"].get("chassis", "Inlet"),
+                    on_change=lambda e: self._store_select_idrac("chassis", e.value),
+                ).classes("col")
+            self._skeleton["chassis"].visible = False
         else:
             self._smart["drive"].visible = False
 
@@ -307,6 +329,7 @@ class Configure(Tab):
             await self._build_ilo4_ctrl(group)
             await self._build_supermicro_ctrl(group)
         await self._build_smart_ctrl()
+        await self._build_idrac_ctrl()
 
     async def _store_select_ilo4(self, group, value):
         storage.host(self.host)["ilo4"][group] = value
@@ -314,6 +337,10 @@ class Configure(Tab):
 
     async def _store_select_smart(self, group, value):
         storage.host(self.host)["smart"][group] = value
+        await Factory.close(self.host, group)
+
+    async def _store_select_idrac(self, group, value):
+        storage.host(self.host)["idrac"][group] = value
         await Factory.close(self.host, group)
 
     async def _store_select_shared(self, group, value):
