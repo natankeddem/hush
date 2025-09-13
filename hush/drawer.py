@@ -83,7 +83,7 @@ class Drawer(object):
             chevron.props(f"color=primary text-color=accent")
 
     def _add_host_to_table(self, name):
-        if len(name) > 0:
+        if name:
             for row in self._table.rows:
                 if name == row["name"]:
                     return
@@ -152,7 +152,7 @@ class Drawer(object):
                 save_ea = el.ErrorAggregator(host_input)
                 el.DButton("SAVE", on_click=lambda: host_dialog.submit("save")).bind_enabled_from(save_ea, "no_errors")
             host_input.value = name
-            if name != "":
+            if name:
                 s = ssh.Ssh(name)
                 if "oob" in storage.host(name):
                     oob_hostname_input.value = storage.host(name)["oob"].get("hostname", "")
@@ -169,7 +169,7 @@ class Drawer(object):
         result = await host_dialog
         if result == "save":
             host = host_input.value.strip()
-            if len(host) > 0:
+            if host:
                 ssh.Ssh(name).remove()
                 ssh.Ssh(f"{name}_oob").remove()
                 if name in storage.hosts:
@@ -177,11 +177,11 @@ class Drawer(object):
                 for row in self._table.rows:
                     if name == row["name"]:
                         self._table.remove_rows(row)
-                if "oob" not in storage.host(name):
+                if "oob" not in storage.host(host):
                     storage.host(host)["oob"] = {}
-                if "os" not in storage.host(name):
+                if "os" not in storage.host(host):
                     storage.host(host)["os"] = {}
-                if "mqtt" not in storage.host(name):
+                if "mqtt" not in storage.host(host):
                     storage.host(host)["mqtt"] = {}
                 storage.host(host)["oob"]["hostname"] = oob_hostname_input.value
                 storage.host(host)["oob"]["username"] = oob_username_input.value

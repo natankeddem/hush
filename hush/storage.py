@@ -47,7 +47,7 @@ for h in hosts:
 
 
 def host(name: str) -> dict:
-    if name not in hosts:
+    if name and name not in hosts:
         hosts[name] = {
             "oob": {
                 "hostname": "",
