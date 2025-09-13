@@ -266,7 +266,7 @@ class Configure(Tab):
                 ).classes("col")
             self._skeleton["chassis"].visible = False
         else:
-            self._smart["drive"].visible = False
+            self._idrac["chassis"].visible = False
 
     async def _build_shared_ctrl(self, group):
         labels = {"speed": "Shared Speed Control Host"}
