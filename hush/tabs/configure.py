@@ -381,7 +381,7 @@ class Configure(Tab):
             if key in host_data:
                 del host_data[key]
         export_data = json.dumps(host_data)
-        filename = "".join([i for i in self.host if i.isalpha()])
+        filename = "".join([i for i in self.host if i.isalnum()])
         ui.download.content(export_data, f"{filename}.json")
 
     async def _test(self, group):
