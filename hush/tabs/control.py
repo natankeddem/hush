@@ -110,17 +110,22 @@ class PwmControl:
         host(self.host)["algo"][self._sensor]["pid"][parameter] = value
 
     def _add_curve(self):
+        options = self._chart_options
+        if self._sensor == "chassis" and "idrac" in host(self.host) and "chassis" in host(self.host)["idrac"] and host(self.host)["idrac"]["chassis"] == "Exhaust - Inlet":
+            options["xAxis"]["min"] = 0
+            options["xAxis"]["max"] = 10
+            options["xAxis"]["tickInterval"] = 1
         self._chart = ui.highchart(
-            self._chart_options,
+            options,
             extras=["draggable-points"],
             on_point_drop=lambda e: self._set_point(e.point_index, e.point_x, e.point_y),
         ).classes("w-full h-64")
 
     def _set_point(self, index, x, y):
-        if x > 100:
-            x = 100
-        if x < 20:
-            x = 20
+        if x > self._chart.options["xAxis"]["max"]:
+            x = self._chart.options["xAxis"]["max"]
+        if x < self._chart.options["xAxis"]["min"]:
+            x = self._chart.options["xAxis"]["min"]
         if y > 100:
             y = 100
         if y < 0:
@@ -131,7 +136,16 @@ class PwmControl:
 
     @property
     def _curve(self):
-        x = curve_temp(self.host, self._sensor)
+        default_temps = None
+        if self._sensor == "chassis" and "idrac" in host(self.host) and "chassis" in host(self.host)["idrac"] and host(self.host)["idrac"]["chassis"] == "Exhaust - Inlet":
+            default_temps = {
+                "Min": 1,
+                "Low": 2,
+                "Medium": 4,
+                "High": 6,
+                "Max": 8,
+            }
+        x = curve_temp(self.host, self._sensor, default=default_temps)
         y = curve_speed(self.host, self._sensor, default=dict(zip(self._levels, [5, 20, 50, 70, 100])))
         curve = []
         for level in self._levels:

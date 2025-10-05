@@ -193,6 +193,8 @@ class Configure(Tab):
         storage.host(self.host)[group] = value
         if group == "speed" and "algo" in storage.host(self.host):
             del storage.host(self.host)["algo"]
+        if group == "chassis" and "algo" in storage.host(self.host) and "chassis" in storage.algo(self.host):
+            del storage.algo(self.host)["chassis"]
         await self._build_ilo4_ctrl(group)
         await self._build_smart_ctrl()
         await self._build_idrac_ctrl()
@@ -341,7 +343,10 @@ class Configure(Tab):
 
     async def _store_select_idrac(self, group, value):
         storage.host(self.host)["idrac"][group] = value
+        if "algo" in storage.host(self.host) and "chassis" in storage.algo(self.host):
+            del storage.algo(self.host)["chassis"]
         await Factory.close(self.host, group)
+        self._control_rebuild()
 
     async def _store_select_shared(self, group, value):
         storage.host(self.host)["shared"][group] = value
