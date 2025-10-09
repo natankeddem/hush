@@ -140,8 +140,7 @@ class Ipmi(Device):
 
     async def set_speed(self, speed: int) -> None:
         self._speed = speed
-        if self._fan_mode != self.FanMode.MANUAL:
-            await self.set_fan_mode(self.FanMode.MANUAL)
+        await self.set_fan_mode(self.FanMode.MANUAL)
         pwm = hex(int(self._speed))
         if self._speed != pwm:
             self._speed = pwm
