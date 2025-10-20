@@ -79,7 +79,7 @@ class iLO4(Device):
             self._fans = await self.get_fan_names()
         for fan in self._fans:
             numbers = re.findall(r"\d+", fan)
-            f = int(numbers) - 1
+            f = int(numbers[0]) - 1
             await self.ssh.shell(f"fan p {f} lock {pwm}")
 
     @property
