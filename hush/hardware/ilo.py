@@ -3,6 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 from typing import Any, Dict, List, Optional
 import time
+import re
 import numpy as np
 from . import Device
 from hush.interfaces import ssh
@@ -77,7 +78,8 @@ class iLO4(Device):
         if self._fans == []:
             self._fans = await self.get_fan_names()
         for fan in self._fans:
-            f = int(fan[4:]) - 1
+            numbers = re.findall(r"\d+", fan)
+            f = int(numbers) - 1
             await self.ssh.shell(f"fan p {f} lock {pwm}")
 
     @property
