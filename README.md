@@ -24,8 +24,8 @@ GUI enabled Docker based fan controller. I appreciate all comments/feedback/bug 
 | Driver         | Credentials | Temperature | Fan Control | Notes                            |
 |----------------|-------------|-------------|-------------|----------------------------------|
 | iDRAC7         | OOB         | IPMI        | IPMI        |                                  |
-| iDRAC8         | OOB         | IPMI        | IMPI        | also for iDRAC 9 3.30.30.30 and earlier                                  |
-| iDRAC9         | OOB         | Redfish     | RedFish     | offset control only              |
+| iDRAC8         | OOB         | IPMI        | IPMI        |                                  |
+| iDRAC9         | OOB         | Redfish     | RedFish     | full control iDRAC 9 3.30.30.30, later versions offset control only |
 | iLO4           | OOB         | Redfish     | Proprietary | must be running unlocked version |
 | Supermicro X9  | OOB         | IPMI        | IPMI        |                                  |
 | Supermicro X10 | OOB         | IPMI        | IPMI        |                                  |
@@ -35,6 +35,7 @@ GUI enabled Docker based fan controller. I appreciate all comments/feedback/bug 
 | Cisco M5       | OOB         | XML API     | XML API     | fan profile control only         |
 | SMART          | OS          | smartctl    |             |                                  |
 | Nvidia GPU     | OS          | nvidia-smi  |             |                                  |
+| HWMON          | OS          | hwmon       | hwmon       | run `sensors-detect` for best experience |
 
 I am hoping to add more controls and sensors in the future.
 
