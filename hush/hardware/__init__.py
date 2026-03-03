@@ -32,7 +32,6 @@ class Device:
 
     def get_os_credentials(self) -> None:
         self.password = storage.host(self.host)["os"]["password"]
-        # self.use_key = storage.host(self.host)["os"]["use_key"]
 
     def get_oob_credentials(self) -> None:
         self.hostname = storage.host(self.host)["oob"]["hostname"]
