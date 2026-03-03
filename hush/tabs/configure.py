@@ -206,7 +206,6 @@ class Configure(Tab):
     async def _build_ilo4_ctrl(self, group):
         if self._select[group].value == "HP iLO 4 Discrete":
             self._skeleton[group].visible = True
-            self._ilo4[group].bind_visibility_from(self._skeleton[group], value=False)
             labels = {"speed": "HP iLO 4 Fans", "cpu": "HP iLO 4 CPUs", "pci": "HP iLO 4 PCIs"}
             self._ilo4[group].clear()
             with self._ilo4[group]:
@@ -228,6 +227,7 @@ class Configure(Tab):
                     multiple=True,
                 ).classes("col")
             self._skeleton[group].visible = False
+            self._ilo4[group].visible = True
         else:
             if group in self._ilo4:
                 self._ilo4[group].visible = False
@@ -235,7 +235,6 @@ class Configure(Tab):
     async def _build_smart_ctrl(self):
         if self._select["drive"].value == "SMART Discrete":
             self._skeleton["drive"].visible = True
-            self._smart["drive"].bind_visibility_from(self._skeleton["drive"], value=False)
             self._smart["drive"].clear()
             with self._smart["drive"]:
                 await Factory.close(self.host, "drive")
@@ -249,13 +248,13 @@ class Configure(Tab):
                     multiple=True,
                 ).classes("col")
             self._skeleton["drive"].visible = False
+            self._smart["drive"].visible = True
         else:
             self._smart["drive"].visible = False
 
     async def _build_idrac_ctrl(self):
         if self._select["chassis"].value == "Dell iDRAC 7" or self._select["chassis"].value == "Dell iDRAC 8":
             self._skeleton["chassis"].visible = True
-            self._idrac["chassis"].bind_visibility_from(self._skeleton["chassis"], value=False)
             self._idrac["chassis"].clear()
             with self._idrac["chassis"]:
                 await Factory.close(self.host, "chassis")
@@ -267,6 +266,7 @@ class Configure(Tab):
                     on_change=lambda e: self._store_select_idrac("chassis", e.value),
                 ).classes("col")
             self._skeleton["chassis"].visible = False
+            self._idrac["chassis"].visible = True
         else:
             self._idrac["chassis"].visible = False
 
@@ -275,10 +275,9 @@ class Configure(Tab):
         options = list(storage.hosts.keys())
         options.remove(self.host)
         if self._select[group].value == "Shared":
-            self._skeleton[group].visible = True
-            self._shared[group].bind_visibility_from(self._skeleton[group], value=False)
-            self._shared[group].clear()
             if options:
+                self._skeleton[group].visible = True
+                self._shared[group].clear()
                 with self._shared[group]:
                     select = ui.select(
                         options,
@@ -289,14 +288,14 @@ class Configure(Tab):
                     if select.value is None:
                         select.value = options[0]
                 self._skeleton[group].visible = False
+                self._shared[group].visible = True
         else:
-            if group in self._ilo4:
+            if group in self._shared:
                 self._shared[group].visible = False
 
     async def _build_supermicro_ctrl(self, group):
         if self._select[group].value == "Supermicro X10 Discrete" or self._select[group].value == "Supermicro X11 Discrete":
             self._skeleton[group].visible = True
-            self._supermicro[group].bind_visibility_from(self._skeleton[group], value=False)
             labels = {"speed": "Supermicro Fan Zones"}
             self._supermicro[group].clear()
             with self._supermicro[group]:
@@ -312,6 +311,7 @@ class Configure(Tab):
                     multiple=True,
                 ).classes("col")
             self._skeleton[group].visible = False
+            self._supermicro[group].visible = True
         else:
             if group in self._supermicro:
                 self._supermicro[group].visible = False
