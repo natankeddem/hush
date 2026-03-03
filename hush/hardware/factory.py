@@ -165,6 +165,8 @@ class Factory:
         if host in cls.drivers:
             if group in cls.drivers[host]:
                 del cls.drivers[host][group]
+        Status.clear(host=host)
+        FanSpeeds.clear(host=host)
 
     @classmethod
     async def close_all(cls):

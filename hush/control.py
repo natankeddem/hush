@@ -13,7 +13,7 @@ from ha_mqtt_discoverable import Settings, DeviceInfo
 from ha_mqtt_discoverable.sensors import Sensor, SensorInfo
 from hush import storage
 from hush.hardware.factory import Factory
-from hush.tabs.monitor import Status
+from hush.tabs.monitor import FanSpeeds, Status
 
 
 class Launcher:
@@ -141,6 +141,11 @@ class Machine:
                 mqtt_speed.set_state(final_speed)
             logger.info(f"{control.hostname} Fan Speed={final_speed}")
             await control.set_speed(final_speed)
+            fan_speeds = await control.get_fan_speed()
+            if fan_speeds:
+                for host in hosts:
+                    fan_speed_status = FanSpeeds(host=host, speeds=fan_speeds)
+                    fan_speed_status.submit()
             for host in hosts:
                 status = Status(
                     host=host,
