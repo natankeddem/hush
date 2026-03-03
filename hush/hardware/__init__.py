@@ -1,7 +1,7 @@
 import logging
 
 logger = logging.getLogger(__name__)
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 from hush.interfaces import http, ssh, ipmitool
 from hush import storage
 
@@ -29,6 +29,10 @@ class Device:
     async def set_speed(self, speed) -> None:
         logger.info(f"The set_speed method is not implemented. {self}")
         self._speed = speed
+
+    async def get_fan_speed(self) -> Dict[str, int]:
+        logger.info(f"The get_fan_speed method is not implemented. {self}")
+        return {}
 
     def get_os_credentials(self) -> None:
         self.password = storage.host(self.host)["os"]["password"]
