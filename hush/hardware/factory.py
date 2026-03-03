@@ -12,6 +12,8 @@ from hush.hardware import ilo
 from hush.hardware import smart
 from hush.hardware import supermicro
 from hush.hardware import openjbod
+from hush.hardware import consumer
+from hush.tabs.monitor import Status, FanSpeeds
 
 
 class Factory:
@@ -81,6 +83,8 @@ class Factory:
                     cls.drivers[host][group]["instance"] = openjbod.Rp2040(host)
                 elif name == "Nvidia":
                     cls.drivers[host][group]["instance"] = nvidia.Gpu(host)
+                elif name == "Consumer HWMON Discrete":
+                    cls.drivers[host][group]["instance"] = consumer.Consumer(host, fan_names=storage.host(host)["consumer"].get(group, []))
                 else:
                     cls.drivers[host][group]["instance"] = None
             if group == "cpu":
@@ -107,6 +111,8 @@ class Factory:
                     cls.drivers[host][group]["instance"] = cisco.M4(host)
                 elif name == "Cisco M5":
                     cls.drivers[host][group]["instance"] = cisco.M5(host)
+                elif name == "Consumer HWMON Discrete":
+                    cls.drivers[host][group]["instance"] = consumer.Consumer(host, temp_names=storage.host(host)["consumer"].get(group, []))
                 else:
                     cls.drivers[host][group]["instance"] = None
             if group == "pci":
@@ -115,6 +121,8 @@ class Factory:
                     await cls.drivers[host][group]["instance"].set_pci_temp_names()
                 elif name == "HP iLO 4 Discrete":
                     cls.drivers[host][group]["instance"] = ilo.iLO4(host, temps=storage.host(host)["ilo4"].get(group, []))
+                elif name == "Consumer HWMON Discrete":
+                    cls.drivers[host][group]["instance"] = consumer.Consumer(host, temp_names=storage.host(host)["consumer"].get(group, []))
                 else:
                     cls.drivers[host][group]["instance"] = None
             elif group == "drive":

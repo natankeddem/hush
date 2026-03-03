@@ -44,6 +44,8 @@ for h in hosts:
         hosts[h]["supermicro"] = {}
     if "idrac" not in hosts[h]:
         hosts[h]["idrac"] = {}
+    if "consumer" not in hosts[h]:
+        hosts[h]["consumer"] = {}
 
 
 def host(name: str) -> dict:
@@ -73,6 +75,7 @@ def host(name: str) -> dict:
             "ilo4": {},
             "smart": {},
             "idrac": {},
+            "consumer": {},
             "shared": {},
         }
     return hosts[name]

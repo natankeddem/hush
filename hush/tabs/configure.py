@@ -26,11 +26,13 @@ cpu_sensor_names = [
     "Cisco M3",
     "Cisco M4",
     "Cisco M5",
+    "Consumer HWMON Discrete",
 ]
 pci_sensor_names = [
     "None",
     "HP iLO 4 All",
     "HP iLO 4 Discrete",
+    "Consumer HWMON Discrete",
 ]
 speed_ctrl_names = [
     "None",
@@ -49,6 +51,7 @@ speed_ctrl_names = [
     "Cisco M5",
     "OpenJBOD",
     "Nvidia",
+    "Consumer HWMON Discrete",
     "Shared",
 ]
 drive_sensor_names = ["None", "SMART All", "SMART Discrete"]
@@ -68,6 +71,7 @@ class Configure(Tab):
         self._smart = {}
         self._shared = {}
         self._supermicro = {}
+        self._consumer = {}
         self._idrac = {}
         with ui.dialog() as self.import_verify, el.Card():
             self.import_verify.props("persistent")
@@ -116,6 +120,8 @@ class Configure(Tab):
         self._shared["speed"].visible = False
         self._supermicro["speed"] = el.WRow()
         self._supermicro["speed"].visible = False
+        self._consumer["speed"] = el.WRow()
+        self._consumer["speed"].visible = False
         with el.WRow():
             self._select["cpu"] = ui.select(
                 cpu_sensor_names,
@@ -130,6 +136,8 @@ class Configure(Tab):
         self._ilo4["cpu"].visible = False
         self._shared["cpu"] = el.WRow()
         self._shared["cpu"].visible = False
+        self._consumer["cpu"] = el.WRow()
+        self._consumer["cpu"].visible = False
         with el.WRow():
             self._select["pci"] = ui.select(
                 pci_sensor_names,
@@ -144,6 +152,8 @@ class Configure(Tab):
         self._ilo4["pci"].visible = False
         self._shared["pci"] = el.WRow()
         self._shared["pci"].visible = False
+        self._consumer["pci"] = el.WRow()
+        self._consumer["pci"].visible = False
         with el.WRow():
             self._select["drive"] = ui.select(
                 drive_sensor_names,
@@ -200,6 +210,7 @@ class Configure(Tab):
         await self._build_idrac_ctrl()
         await self._build_shared_ctrl(group)
         await self._build_supermicro_ctrl(group)
+        await self._build_consumer_ctrl(group)
         await Factory.close(self.host, group)
         self._control_rebuild()
 
@@ -316,6 +327,34 @@ class Configure(Tab):
             if group in self._supermicro:
                 self._supermicro[group].visible = False
 
+    async def _build_consumer_ctrl(self, group):
+        if self._select[group].value == "Consumer HWMON Discrete":
+            self._skeleton[group].visible = True
+            self._consumer[group].clear()
+            with self._consumer[group]:
+                await Factory.close(self.host, group)
+                device = await Factory.driver(self.host, group)
+                if device is None:
+                    options = []
+                else:
+                    if group == "speed":
+                        options = await device.get_fan_names()
+                    else:
+                        options = await device.get_cpu_temp_names()
+                label = "Consumer HWMON Speed Controls" if group == "speed" else "Consumer HWMON Temperature Sensors"
+                ui.select(
+                    options,
+                    label=label,
+                    value=storage.host(self.host).get("consumer", {}).get(group, []),
+                    on_change=lambda e: self._store_select_consumer(group, e.value),
+                    multiple=True,
+                ).classes("col")
+            self._skeleton[group].visible = False
+            self._consumer[group].visible = True
+        else:
+            if group in self._consumer:
+                self._consumer[group].visible = False
+
     async def _update_ctrls(self):
         groups = ["speed", "cpu", "pci", "drive", "gpu", "chassis"]
         for group in groups:
@@ -330,6 +369,7 @@ class Configure(Tab):
         for group in groups:
             await self._build_ilo4_ctrl(group)
             await self._build_supermicro_ctrl(group)
+            await self._build_consumer_ctrl(group)
         await self._build_smart_ctrl()
         await self._build_idrac_ctrl()
 
@@ -354,6 +394,12 @@ class Configure(Tab):
 
     async def _store_select_supermicro(self, group, value):
         storage.host(self.host)["supermicro"][group] = value
+        await Factory.close(self.host, group)
+
+    async def _store_select_consumer(self, group, value):
+        if "consumer" not in storage.host(self.host):
+            storage.host(self.host)["consumer"] = {}
+        storage.host(self.host)["consumer"][group] = value
         await Factory.close(self.host, group)
 
     async def handle_import_select(self, upload: ui.upload):
