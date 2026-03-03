@@ -25,7 +25,7 @@ class Launcher:
         self.busy = True
         hosts = list(storage.hosts.keys())
         for host in hosts:
-            if not storage.host(host)["shared"].get("speed", None):
+            if storage.host(host).get("speed", "") != "Shared":
                 delay = storage.host(host).get("delay", 30)
                 if host not in self.times:
                     elapsed_time = timedelta(seconds=delay)
@@ -33,7 +33,7 @@ class Launcher:
                     elapsed_time = dt.now() - self.times[host]
                 shared_speed_hosts = []
                 for h in hosts:
-                    if host == storage.host(h)["shared"].get("speed", ""):
+                    if storage.host(h).get("speed", "") == "Shared" and host == storage.host(h)["shared"].get("speed", ""):
                         shared_speed_hosts.append(h)
                 if delay is not None and delay > 0 and elapsed_time.seconds >= delay:
                     machine = Machine(host=host, shared_speed_hosts=shared_speed_hosts)
